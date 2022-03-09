@@ -24,20 +24,25 @@ import logging
 import csv
 import openpyxl
 import pyinputplus as pyin
+import msoffcrypto
+from pathlib import Path
 from openpyxl.utils import column_index_from_string
 from months_cz import months_cz
 from structure import COMPANIES, SRC_FOLDER
+from insuranceCodes import insurance_codes
+from io import BytesIO
+from shutil import copyfile
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s',
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-MONTH = pyin.inputMenu(months_cz, numbered=True, prompt="Vyberte mesic:\n")
-MONTH = months_cz.index(MONTH) + 1
+MONTH_NAME = pyin.inputMenu(months_cz, numbered=True, prompt="Vyberte mesic:\n")
+MONTH = months_cz.index(MONTH_NAME) + 1
 
 for company_name, input_output in COMPANIES.items():
     logging.info(f'Vyplnuji {company_name}')
 
-    wb = openpyxl.load_workbook(SRC_FOLDER / input_output['src_file'])
+    wb = openpyxl.load_workbook(SRC_FOLDER / input_output['src_file_up'])
     ws = wb["1) Úvodní list"]
 
     if MONTH <= 3:
@@ -56,7 +61,6 @@ for company_name, input_output in COMPANIES.items():
 
     employees_up = {}
     employees_inter = {}
-    insurance_codes = {'00903': 111, '00015': 201}
 
     # get data for each employee
     # split data to first name, last name, id, ins.group and money
@@ -102,9 +106,7 @@ for company_name, input_output in COMPANIES.items():
                                          'payment expenses': total_expenses
                                          })
 
-        # employees_inter.setdefault(lname + ' ' + fname, total_expenses)
-
-    # logging.info(employees_inter)
+        employees_inter.setdefault(lname + ' ' + fname, total_expenses)
 
     # open mzdy UP table, go through each name in data and check if it is in table
     sheets = ['2) jmenný seznam', '3) nákl. prov. z. a prac. a.']
@@ -182,13 +184,56 @@ for company_name, input_output in COMPANIES.items():
                 if sheet_name == sheets[0]:
                     ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ''
 
-    wb.save(input_output['output_file'])
+    # wb.save(input_output['output_file_up'])
     logging.info(f"{company_name} vyplneno.\n")
     # open document for visual check
 
     # open mzdove naklady fiala, go through each sheet and check if name is in data
+
     # if found, add payment expenses to correct month
     # if not found, add name to first column and fill in payment expenses
 
-    # repeat for bereko
+    if 'src_file_loc' in input_output.keys():
+        if Path(input_output['src_file_loc']).exists():
+            try:
+                decrypted_wb = BytesIO()
+                with open(input_output['src_file_loc'], 'rb') as f:
+                    officeFile = msoffcrypto.OfficeFile(f)
+                    officeFile.load_key(password='13881744')
+                    officeFile.decrypt(decrypted_wb)
+
+                wb = openpyxl.load_workbook(filename=decrypted_wb)
+            except UnboundLocalError:
+                wb = openpyxl.load_workbook(input_output['src_file_loc'])
+
+            logging.info('Going local')
+
+            for sheet in wb.sheetnames[:8]:
+                logging.info(sheet)
+                ws = wb[sheet]
+                month_col = ''
+                for col in range(2, column_index_from_string('BW')):
+                    cell = ws.cell(row=1, column=col)
+                    if not type(cell).__name__ == 'MergedCell' and cell.value not in [None, "celkem za rok", "=A1"]:
+                        if cell.value == MONTH_NAME:
+                            month_col = cell.column
+                            break
+                    else:
+                        continue
+
+                for i in range(3, 200):
+                    cell = ws.cell(row=i, column=1)
+                    cell_val = cell.value
+                    if cell_val:
+
+                        if cell_val == 'Zákonné pojištění' or cell_val == 'Mzdové náklady':
+                            break
+
+                        if cell_val in employees_inter:
+                            logging.info(f"Vyplnuji {cell_val}: {employees_inter[cell_val]}")
+                            ws.cell(row=i, column=month_col).value = employees_inter[cell_val]
+                logging.info("")
+
+            wb.save(input_output['output_file_loc'])
+
 logging.info("Done")
