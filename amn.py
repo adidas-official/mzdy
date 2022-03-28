@@ -157,8 +157,8 @@ for company_name, input_output in COMPANIES.items():
             else:
                 logging.info(f"Pridavam do listu {sheets[1]}")
                 ws = wb[sheets[1]]
-                ws.cell(row=last_rows[1] + 1, column=2).value = emp_data['last name']
-                ws.cell(row=last_rows[1] + 1, column=3).value = emp_data['first name']
+                ws.cell(row=last_rows[1] + 1, column=2).value = emp_data['first name']
+                ws.cell(row=last_rows[1] + 1, column=3).value = emp_data['last name']
                 ws.cell(row=last_rows[1] + 1, column=4).value = emp_id[:6] + '/' + emp_id[6:]
                 ws.cell(row=last_rows[1] + 1, column=col_letter_pay[ws.title]).value = emp_data['payment expenses']
                 ws.cell(row=last_rows[1] + 1, column=5).value = '-\'\'-'
@@ -184,7 +184,7 @@ for company_name, input_output in COMPANIES.items():
                 if sheet_name == sheets[0]:
                     ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ''
 
-    # wb.save(input_output['output_file_up'])
+    wb.save(input_output['output_file_up'])
     logging.info(f"{company_name} vyplneno.\n")
     # open document for visual check
 
