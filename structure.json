@@ -1,0 +1,16 @@
+{
+  "Fiala": {
+    "input_data": "ARCHIVM.CSV",
+    "src_file_up": "jmenny_seznam_2022_03_24 Fiala.xlsx",
+    "src_file_loc": "Mzdové náklady 2021.xlsx",
+    "output_file_up": "temp-fiala-up.xlsx",
+    "output_file_loc": "temp-fiala-loc.xlsx"
+  },
+  "Bereko": {
+    "input_data": "bereko.CSV",
+    "src_file_up": "jmenny_seznam_2022_03_24 Bereko.xlsx",
+    "src_file_loc": "mzdové náklady bereko 2021.xlsx",
+    "output_file_up": "temp-bereko-up.xlsx",
+    "output_file_loc": "temp-bereko-loc.xlsx"
+  }
+}

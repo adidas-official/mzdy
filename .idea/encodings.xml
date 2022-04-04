@@ -4,5 +4,6 @@
     <file url="file://$PROJECT_DIR$/INPUT/I.CSV" charset="windows-1250" />
     <file url="file://$PROJECT_DIR$/INPUT/bereko.CSV" charset="windows-1250" />
     <file url="file://$PROJECT_DIR$/INPUT/fiala.CSV" charset="windows-1250" />
+    <file url="file://$PROJECT_DIR$/structure.json" charset="windows-1250" />
   </component>
 </project>

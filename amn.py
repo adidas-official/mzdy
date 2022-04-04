@@ -4,20 +4,21 @@
 # Mzdovych     |
 # Nakladu      |
 # -------------+
-# v1
+# v2
 # author: Zdenek Frydryn
 # created for: Bereko s.r.o., Drogerie Fiala s.r.o.,
-# Description: Automatizace vyplnovani mezd do xlsx tabulek pro urad prace.
+# Description: Automatizace vyplnovani mezd do xlsx tabulek pro urad prace a internich tabulek.
 
 # TOOD:
 # 1) Check for quartal => [DONE]
-# 2) mzdove naklady
+# 2) mzdove naklady => [DONE]
 # 3) choose bereko or fiala from filename of csv file; bereko.csv or fiala.csv => [DONE]
-# 4) update both UP and mzdove naklady in one run
-# 5) update both fiala and bereko in one run
+# 4) update both UP and mzdove naklady in one run => [DONE]
+# 5) update both fiala and bereko in one run = [DONE]
+# 6) GUI for updating structure.json and for executing program
 # --------------------------------------------------------------------------------
 # maybe not possible:
-# 6) get status of ozp, add to exported csv
+# 7) get status of ozp, add to exported csv
 
 
 import logging
@@ -28,16 +29,23 @@ import msoffcrypto
 from pathlib import Path
 from openpyxl.utils import column_index_from_string
 from months_cz import months_cz
-from structure import COMPANIES, SRC_FOLDER
 from insuranceCodes import insurance_codes
 from io import BytesIO
-from shutil import copyfile
+import json
+# from shutil import copyfile
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 MONTH_NAME = pyin.inputMenu(months_cz, numbered=True, prompt="Vyberte mesic:\n")
 MONTH = months_cz.index(MONTH_NAME) + 1
+
+INPUT_FOLDER = Path.cwd() / 'INPUT'
+OUTPUT_FOLDER = Path.cwd() / 'OUTPUT'
+SRC_FOLDER = Path.cwd() / 'SRC'
+
+with open('structure.json') as jdata:
+    COMPANIES = json.load(jdata)
 
 for company_name, input_output in COMPANIES.items():
     logging.info(f'Vyplnuji {company_name}')
@@ -54,7 +62,7 @@ for company_name, input_output in COMPANIES.items():
     else:
         ws.cell(row=6, column=4).value = 4
 
-    with open(input_output['input_data'], 'r') as empl_data_csv:
+    with open(INPUT_FOLDER / input_output['input_data'], 'r') as empl_data_csv:
         empl_data_reader = csv.reader(empl_data_csv)
         empl_data = list(empl_data_reader)
         empl_data = empl_data[1:]
@@ -127,7 +135,7 @@ for company_name, input_output in COMPANIES.items():
         last_row = 13
         ids_in_xlsx.setdefault(sheet, {})
 
-        for i in range(10):
+        for i in range(100):
             row = i + 13
             id_of_person = ws.cell(row=row, column=col_letter_id).value
             # make list of ids in xlsx file
@@ -157,8 +165,8 @@ for company_name, input_output in COMPANIES.items():
             else:
                 logging.info(f"Pridavam do listu {sheets[1]}")
                 ws = wb[sheets[1]]
-                ws.cell(row=last_rows[1] + 1, column=2).value = emp_data['first name']
-                ws.cell(row=last_rows[1] + 1, column=3).value = emp_data['last name']
+                ws.cell(row=last_rows[1] + 1, column=2).value = emp_data['last name']
+                ws.cell(row=last_rows[1] + 1, column=3).value = emp_data['first name']
                 ws.cell(row=last_rows[1] + 1, column=4).value = emp_id[:6] + '/' + emp_id[6:]
                 ws.cell(row=last_rows[1] + 1, column=col_letter_pay[ws.title]).value = emp_data['payment expenses']
                 ws.cell(row=last_rows[1] + 1, column=5).value = '-\'\'-'
@@ -184,7 +192,7 @@ for company_name, input_output in COMPANIES.items():
                 if sheet_name == sheets[0]:
                     ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ''
 
-    wb.save(input_output['output_file_up'])
+    wb.save(OUTPUT_FOLDER / input_output['output_file_up'])
     logging.info(f"{company_name} vyplneno.\n")
     # open document for visual check
 
@@ -194,17 +202,17 @@ for company_name, input_output in COMPANIES.items():
     # if not found, add name to first column and fill in payment expenses
 
     if 'src_file_loc' in input_output.keys():
-        if Path(input_output['src_file_loc']).exists():
+        if Path(SRC_FOLDER / input_output['src_file_loc']).exists():
             try:
                 decrypted_wb = BytesIO()
-                with open(input_output['src_file_loc'], 'rb') as f:
+                with open(SRC_FOLDER / input_output['src_file_loc'], 'rb') as f:
                     officeFile = msoffcrypto.OfficeFile(f)
                     officeFile.load_key(password='13881744')
                     officeFile.decrypt(decrypted_wb)
 
                 wb = openpyxl.load_workbook(filename=decrypted_wb)
             except UnboundLocalError:
-                wb = openpyxl.load_workbook(input_output['src_file_loc'])
+                wb = openpyxl.load_workbook(SRC_FOLDER / input_output['src_file_loc'])
 
             logging.info('Going local')
 
@@ -234,6 +242,6 @@ for company_name, input_output in COMPANIES.items():
                             ws.cell(row=i, column=month_col).value = employees_inter[cell_val]
                 logging.info("")
 
-            wb.save(input_output['output_file_loc'])
+            wb.save(OUTPUT_FOLDER / input_output['output_file_loc'])
 
 logging.info("Done")
