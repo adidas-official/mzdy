@@ -16,9 +16,13 @@
 # 4) update both UP and mzdove naklady in one run => [DONE]
 # 5) update both fiala and bereko in one run = [DONE]
 # 6) GUI for updating structure.json and for executing program
+# 7) insurance codes
+# 8) copy status from month before
+# 9) if first month of quartal, delete next 2 months
+# 10) add `Nepoj` field to csv export
 # --------------------------------------------------------------------------------
 # maybe not possible:
-# 7) get status of ozp, add to exported csv
+# get status of ozp, add to exported csv
 
 
 import logging
@@ -34,7 +38,7 @@ from io import BytesIO
 import json
 # from shutil import copyfile
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
+logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w', format='%(asctime)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 MONTH_NAME = pyin.inputMenu(months_cz, numbered=True, prompt="Vyberte mesic:\n")
@@ -101,7 +105,7 @@ for company_name, input_output in COMPANIES.items():
 
         # calculate salary
         total_expenses = 0
-        for exp in i[4:]:
+        for exp in i[5:]:
             try:
                 total_expenses += int(exp)
             except ValueError:
@@ -113,8 +117,11 @@ for company_name, input_output in COMPANIES.items():
                                          'cat': category,
                                          'payment expenses': total_expenses
                                          })
+        no_fare = total_expenses
 
-        employees_inter.setdefault(lname + ' ' + fname, total_expenses)
+        if i[4]:
+            no_fare = no_fare + int(i[4])
+        employees_inter.setdefault(lname + ' ' + fname, no_fare)
 
     # open mzdy UP table, go through each name in data and check if it is in table
     sheets = ['2) jmenný seznam', '3) nákl. prov. z. a prac. a.']
@@ -140,7 +147,7 @@ for company_name, input_output in COMPANIES.items():
             id_of_person = ws.cell(row=row, column=col_letter_id).value
             # make list of ids in xlsx file
             if id_of_person:
-                ids_in_xlsx[sheet].setdefault(id_of_person.replace('/', ''), row)
+                ids_in_xlsx[sheet].setdefault(str(id_of_person).replace('/', ''), row)
                 last_row = row
 
         last_rows.append(last_row)
@@ -161,6 +168,8 @@ for company_name, input_output in COMPANIES.items():
                 ws.cell(row=last_rows[0] + 1, column=7).value = emp_data['ins code']
                 ws.cell(row=last_rows[0] + 1, column=col_letter_pay[ws.title]).value = emp_data['payment expenses']
                 last_rows[0] += 1
+            elif emp_data['cat'] == 'U':
+                continue
 
             else:
                 logging.info(f"Pridavam do listu {sheets[1]}")
