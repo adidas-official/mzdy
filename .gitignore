@@ -1,4 +1,6 @@
 /venv/
 /INPUT/I.DBF
-/.idea
+/.idea/*
 /OUTPUT/*
+*.ai
+*.log
