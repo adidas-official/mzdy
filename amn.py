@@ -17,8 +17,8 @@
 # 5) update both fiala and bereko in one run => [DONE]
 # 6) GUI for updating structure.json and for executing program => [DONE]
 # 7) insurance codes => [DONE]
-# 8) copy status from month before
-# 9) if first month of quartal, delete next 2 months
+# 8) copy status from month before => [DONE]
+# 9) if first month of quartal, delete next 2 months => [DONE]
 # 10) add `Davky1` field to csv export => [DONE]
 # --------------------------------------------------------------------------------
 # maybe not possible:
@@ -39,16 +39,33 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from datetime import datetime
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, askdirectory
 
 logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w',
                     format='%(levelname)s - %(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
+
 current_month = months_cz[datetime.now().month - 1]
 
+with open('structure.json', 'r', encoding='cp1250') as jdata:
+    last_data = json.load(jdata)
 
-def open_log_file():
-    pass
+
+def get_help():
+    with open('help.txt', 'r') as helpfile:
+        h = helpfile.read()
+    txt.insert(tk.END, h)
+
+
+def show_banner():
+    txt.delete('1.0', tk.END)
+    banner = '''    _     __  __   _  _ 
+   /_\   |  \/  | | \| |	.. Automatizace	..
+  / _ \  | |\/| | | .` |	.. Mzdových		   ..
+ /_/ \_\ |_|  |_| |_|\_|	.. Nákladů			   ..
+============================================ '''
+    txt.insert('1.0', banner)
+    get_help()
 
 
 def load_ins_codes(c_name, my_tree):
@@ -61,7 +78,6 @@ def load_ins_codes(c_name, my_tree):
 
 
 def add_new(tab):
-    txt.delete('1.0', tk.END)
     my_tree = root.nametowidget(tab + '.!treeview')
     c_name = tabs.tab(tab)['text']
 
@@ -85,9 +101,11 @@ def add_new(tab):
         if ucto_code_entry not in ins_codes and ins_code_entry not in i_codes:
             my_tree.insert('', tk.END, values=values)
         else:
+            txt.delete('1.0', tk.END)
             txt.insert('1.0', 'Tento kod uz existuje.')
             print('This code is already used')
     else:
+        txt.delete('1.0', tk.END)
         txt.insert('1.0', 'Vyplnte vsechna pole.')
         print('Fill out all fields')
 
@@ -172,6 +190,51 @@ def select_log_file():
         log_file_btn['text'] = 'Choose log file'
 
 
+companies = []
+
+
+def activate_tab(tab, act):
+    state = act.get()
+    # btn = root.nametowidget(tab + '.!checkbutton')
+    c_name = tabs.tab(tab)['text']
+    buttons = ['.!button',
+               '.!button2',
+               '.!button3',
+               '.!button4',
+               '.!button5',
+               '.!button6',
+               '.!button7',
+               '.!entry',
+               '.!entry2',
+               '.!entry3']
+
+    if state == '0':
+        for b in buttons:
+            root.nametowidget(tab + b)['state'] = 'disabled'
+        if c_name in companies:
+            companies.remove(c_name)
+    else:
+        for b in buttons:
+            root.nametowidget(tab + b)['state'] = 'enabled'
+        if c_name not in companies:
+            companies.append(c_name)
+
+    if len(companies) > 0:
+        start_btn['state'] = 'enabled'
+    else:
+        start_btn['state'] = 'disabled'
+
+
+def set_dir(btn, comp):
+    c_name = tabs.tab(comp)["text"]
+    dir_name = askdirectory(title='Choose output folder', initialdir='.')
+    if dir_name:
+        root.nametowidget(comp + '.' + btn.winfo_name())["text"] = str(Path(dir_name).name)
+        last_data[c_name]['output'] = str(Path(dir_name))
+        with open('structure.json', 'w', encoding='cp1250') as input_file:
+            input_file.write(json.dumps(last_data))
+
+
 def set_datas(btn, comp, filetypes, key_name):
     # print(comp)  # .!frame2.!notebook.!frame, .!frame2.!notebook.!frame2
     c_name = tabs.tab(comp)["text"]
@@ -197,6 +260,9 @@ def amn(month_name, data, text_field):
     month = months_cz.index(month_name) + 1
 
     for c_name, input_output in data.items():
+        if c_name not in companies:
+            continue
+
         try:
             with open(f'insurance_codes_{c_name}.json', 'r') as ins_file:
                 ins_codes = json.load(ins_file)
@@ -209,12 +275,14 @@ def amn(month_name, data, text_field):
 
         wb = openpyxl.load_workbook(input_output['src_file_up'])
         ws = wb["1) Úvodní list"]
+        date_formated = datetime.now().strftime("%d.%m.%Y")
+        ws.cell(row=30, column=column_index_from_string('E')).value = date_formated
 
         if month <= 3:
             ws.cell(row=6, column=4).value = 1
-        elif 4 < month <= 6:
+        elif 3 < month <= 6:
             ws.cell(row=6, column=4).value = 2
-        elif 7 < month <= 9:
+        elif 6 < month <= 9:
             ws.cell(row=6, column=4).value = 3
         else:
             ws.cell(row=6, column=4).value = 4
@@ -364,6 +432,17 @@ def amn(month_name, data, text_field):
                         f"Vyplnuji vyplatu pro {employees_up[id_num]['first name']} {employees_up[id_num]['last name']} v listu {sheet_name}:{employees_up[id_num]['payment expenses']}")
                     # zadat plat za tento mesic
                     ws.cell(row=row_num, column=col_letter_pay[sheet_name]).value = employees_up[id_num]['payment expenses']
+                    if sheet_name == sheets[0] and col_letter_pay[sheet_name] > 11:
+                        ozp_status = ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 6).value
+                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ozp_status
+                    elif col_letter_pay[sheet_name] == 11:
+                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 4).value = ''
+                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 5).value = ''
+                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 9).value = ''
+                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 10).value = ''
+                    elif col_letter_pay[sheet_name] == 16:
+                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 4).value = ''
+                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 5).value = ''
 
                 else:
                     text_field.insert(tk.END, f"|- Zamestnanec {id_num} v listu {sheet_name} nema vyplnenou vyplatu. Mazu pole status\n")
@@ -373,7 +452,8 @@ def amn(month_name, data, text_field):
                         ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ''
                 root.update_idletasks()
 
-        wb.save(input_output['output_file_up'])
+        save_loc = Path(input_output['output']) / f'temp-{c_name}-up.xlsx'
+        wb.save(save_loc)
         text_field.insert(tk.END, f"{c_name} vyplneno.\n")
         text_field.insert(tk.END, "=" * 44+"\n")
         logging.info(f"{c_name} vyplneno.\n")
@@ -432,15 +512,12 @@ def amn(month_name, data, text_field):
                         root.update_idletasks()
                     logging.info("")
 
-                wb.save(input_output['output_file_loc'])
+                save_loc = Path(input_output['output']) / f'temp-{c_name}-loc.xlsx'
+                wb.save(save_loc)
 
     text_field.insert(tk.END, 'DONE')
     text_field.see('end')
     logging.info("DONE")
-
-
-with open('structure.json', 'r', encoding='cp1250') as jdata:
-    last_data = json.load(jdata)
 
 
 def main_window(widget, width=0, height=0):
@@ -475,21 +552,12 @@ choose_month.configure(width=8)
 
 progress = ttk.Progressbar(top_frame, length=100, mode='determinate', orient='horizontal')
 
-log_file_btn = ttk.Button(top_frame, width=1, text='Open log file', command=open_log_file)
+log_file_btn = ttk.Button(top_frame, width=1, text='Zobrazit napovedu', command=show_banner)
 
-banner = '''    _     __  __   _  _ 
-   /_\   |  \/  | | \| |	.. Automatizace	..
-  / _ \  | |\/| | | .` |	.. Mzdových		   ..
- /_/ \_\ |_|  |_| |_|\_|	.. Nákladů			   ..
-============================================
-'''
 txt = ScrolledText(top_frame, width=2, height=5)
-txt.insert(
-    '1.0',
-    banner
-)
+show_banner()
 
-start_btn = ttk.Button(top_frame, width=1, text='Start', state='enabled',
+start_btn = ttk.Button(top_frame, width=1, text='Start', state='disabled',
                        command=lambda: amn(chosen_month.get(), last_data, txt))
 
 btn_opts = {'sticky': 'we', 'padx': 5, 'pady': 5}
@@ -510,10 +578,6 @@ tabs.grid(row=0, column=0)
 
 # companies = last_data.keys()
 for company_name, file_paths in last_data.items():
-    # print(company_name)
-    # print(file_paths)
-
-    # files.setdefault(company_name, {})
 
     company_frame = ttk.Frame(tabs)
     company_frame.grid_columnconfigure(0, weight=1)
@@ -523,8 +587,22 @@ for company_name, file_paths in last_data.items():
     # company_frame.grid_columnconfigure(4, weight=1)
     # company_frame.grid_columnconfigure(5, weight=1)
 
-    check_box = ttk.Checkbutton(company_frame, text=company_name, onvalue=1, offvalue=0)
+    active = tk.StringVar()
+    check_box = ttk.Checkbutton(
+        company_frame,
+        text=company_name,
+        onvalue=1,
+        offvalue=0,
+        variable=active,
+        command=lambda state=active: activate_tab(
+            tabs.select(),
+            state
+        )
+    )
+    # tree.bind('<<TreeviewSelect>>', lambda event='<<TreeviewSelect>>', my_tree=tree: item_selected(event, my_tree))
     check_box.grid(row=0, column=0)
+    # print(check_box.keys())
+    # print(check_box['variable'])
 
     src_label = ttk.Label(company_frame, text='ZDROJ')
     src_label.grid(row=1, column=0)
@@ -536,6 +614,7 @@ for company_name, file_paths in last_data.items():
         company_frame,
         text=Path(file_paths['src_file_up']).name,
         width=20,
+        state='disabled',
         command=lambda: set_datas(
             up_btn_in,
             tabs.select(),
@@ -551,6 +630,7 @@ for company_name, file_paths in last_data.items():
         company_frame,
         text=Path(file_paths['src_file_loc']).name,
         width=20,
+        state='disabled',
         command=lambda: set_datas(
             inter_btn_in,
             tabs.select(),
@@ -563,39 +643,18 @@ for company_name, file_paths in last_data.items():
     output_label = ttk.Label(company_frame, text='VYSTUP')
     output_label.grid(row=1, column=1)
 
-    up_label_out = ttk.Label(company_frame, text='pro u.p.')
-    up_label_out.grid(row=2, column=1)
-
     up_btn_out = ttk.Button(
         company_frame,
-        text=Path(file_paths['output_file_up']).name,
+        text=Path(file_paths['output']).name,
         width=20,
-        command=lambda: set_datas(
+        state='disabled',
+        command=lambda: set_dir(
             up_btn_out,
-            tabs.select(),
-            [('Excel sheet', '*.xls?')],
-            'output_file_up'
+            tabs.select()
         )
     )
 
     up_btn_out.grid(row=3, column=1)
-
-    inter_label_out = ttk.Label(company_frame, text='interni')
-    inter_label_out.grid(row=4, column=1)
-
-    inter_btn_out = ttk.Button(
-        company_frame,
-        text=Path(file_paths['output_file_loc']).name,
-        width=20,
-        command=lambda: set_datas(
-            inter_btn_out,
-            tabs.select(),
-            [('Spreadsheets', '*.xlsx')],
-            'output_file_loc'
-        )
-    )
-
-    inter_btn_out.grid(row=5, column=1)
 
     data_label = ttk.Label(company_frame, text='Data')
     data_label.grid(row=0, column=2)
@@ -604,6 +663,7 @@ for company_name, file_paths in last_data.items():
         company_frame,
         text=Path(file_paths['input_data']).name,
         width=20,
+        state='disabled',
         command=lambda: set_datas(
             data_btn,
             tabs.select(),
@@ -634,24 +694,37 @@ for company_name, file_paths in last_data.items():
     scrollbar = ttk.Scrollbar(company_frame, orient=tk.VERTICAL, command=tree.yview)
     tree.configure(yscroll=scrollbar.set, height=5)
 
-    code_ucto_btn = ttk.Entry(company_frame)
+    code_ucto_btn = ttk.Entry(company_frame, state='disabled')
     code_ucto_btn.grid(row=7, column=2)
 
-    ins_code_btn = ttk.Entry(company_frame)
+    ins_code_btn = ttk.Entry(company_frame, state='disabled')
     ins_code_btn.grid(row=7, column=3)
 
-    ins_name_btn = ttk.Entry(company_frame)
+    ins_name_btn = ttk.Entry(company_frame, state='disabled')
     ins_name_btn.grid(row=7, column=4)
 
-    add_button = ttk.Button(company_frame, text="Add new", command=lambda: add_new(tabs.select()))
+    add_button = ttk.Button(
+        company_frame,
+        text="Pridat",
+        state='disabled',
+        command=lambda: add_new(tabs.select()))
+
     add_button.grid(row=8, column=2)
 
-    update = ttk.Button(company_frame, text="Update selected",
-                        command=lambda my_tree=tree: update_ins(tabs.select(), my_tree))
+    update = ttk.Button(
+        company_frame,
+        text="Prepsat",
+        state='disabled',
+        command=lambda my_tree=tree: update_ins(tabs.select(), my_tree))
+
     update.grid(row=8, column=3)
 
-    delete_btn = ttk.Button(company_frame, text="Delete record",
-                            command=lambda my_tree=tree: delete_record(tabs.select(), my_tree))
+    delete_btn = ttk.Button(
+        company_frame,
+        text="Smazat",
+        state='disabled',
+        command=lambda my_tree=tree: delete_record(tabs.select(), my_tree))
+
     delete_btn.grid(row=8, column=4)
 
     for w in company_frame.winfo_children():
