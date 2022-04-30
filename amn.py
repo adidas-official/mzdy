@@ -27,6 +27,7 @@
 
 import logging
 import csv
+import subprocess
 import openpyxl
 import msoffcrypto
 from pathlib import Path
@@ -34,12 +35,12 @@ from openpyxl.utils import column_index_from_string
 from months_cz import months_cz
 from io import BytesIO
 import json
-# from shutil import copyfile
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from datetime import datetime
 from tkinter.filedialog import askopenfilename, askdirectory
+from tkinter import simpledialog
 
 logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w',
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -51,6 +52,38 @@ with open('structure.json', 'r', encoding='cp1250') as jdata:
     last_data = json.load(jdata)
 
 
+def rename_tab(tab):
+    btn = root.nametowidget(tab + '.!checkbutton')
+    c_name = tabs.tab(tab)['text']
+    new_name = simpledialog.askstring("Input", "Test", parent=root)
+
+    if c_name in companies:
+        index = companies.index(c_name)
+        companies.pop(index)
+
+    companies.append(new_name)
+
+    tabs.tab(tab, text=new_name)
+    new_data = {new_name if k == c_name else k:v for k, v in last_data.items()}
+    btn['text'] = new_name
+
+    with open(f'structure.json', 'w') as outfile:
+        json.dump(new_data, outfile)
+
+    Path(f'insurance_codes_{c_name}.json').rename(f'insurance_codes_{new_name}.json')
+
+
+def delete_tab(tab):
+    print(f'Deleting tab {tab}')
+    root.nametowidget(tab).destroy()
+
+
+def open_output(tab):
+    c_name = tabs.tab(tab)['text']
+    output_folder = last_data[c_name]['output']
+    subprocess.Popen(f'explorer {output_folder}')
+
+
 def get_help():
     with open('help.txt', 'r') as helpfile:
         h = helpfile.read()
@@ -60,10 +93,10 @@ def get_help():
 def show_banner():
     txt.delete('1.0', tk.END)
     banner = '''    _     __  __   _  _ 
-   /_\   |  \/  | | \| |	.. Automatizace	..
-  / _ \  | |\/| | | .` |	.. Mzdových		   ..
- /_/ \_\ |_|  |_| |_|\_|	.. Nákladů			   ..
-============================================ '''
+   /_\   |  \/  | | \| |			   |       Automatizace	
+  / _ \  | |\/| | | .` |	     |       Mzdových		   
+ /_/ \_\ |_|  |_| |_|\_|			   |       Nákladů			   
+========================================================= '''
     txt.insert('1.0', banner)
     get_help()
 
@@ -185,9 +218,9 @@ def select_log_file():
         file = Path(filename).name
         # files['log file'] = filename
         print(file)
-        log_file_btn['text'] = file
+        help_btn['text'] = file
     else:
-        log_file_btn['text'] = 'Choose log file'
+        help_btn['text'] = 'Choose log file'
 
 
 companies = []
@@ -199,11 +232,12 @@ def activate_tab(tab, act):
     c_name = tabs.tab(tab)['text']
     buttons = ['.!button',
                '.!button2',
-               '.!button3',
-               '.!button4',
                '.!button5',
                '.!button6',
                '.!button7',
+               '.!button8',
+               '.!button9',
+               '.!button10',
                '.!entry',
                '.!entry2',
                '.!entry3']
@@ -255,7 +289,11 @@ def set_datas(btn, comp, filetypes, key_name):
             input_file.write(json.dumps(last_data))
 
 
-def amn(month_name, data, text_field):
+def amn(month_name, text_field):
+
+    with open('structure.json', 'r', encoding='cp1250') as jdata:
+        data = json.load(jdata)
+
     text_field.delete('1.0', tk.END)
     month = months_cz.index(month_name) + 1
 
@@ -287,7 +325,7 @@ def amn(month_name, data, text_field):
         else:
             ws.cell(row=6, column=4).value = 4
 
-        with open(input_output['input_data'], 'r') as empl_data_csv:
+        with open(input_output['input_data'], 'r', encoding='cp1250') as empl_data_csv:
             empl_data_reader = csv.reader(empl_data_csv)
             empl_data = list(empl_data_reader)
             empl_data = empl_data[1:]
@@ -535,45 +573,51 @@ def main_window(widget, width=0, height=0):
 
 
 root = tk.Tk()
+style = ttk.Style(root)
+style.theme_use('clam')
+
+s = ttk.Style()
+s.configure("Frames.TFrame", background='#EEE')
+
 root.grid_columnconfigure(0, weight=1)
 
-main_window(root, 720, 610)
-opts = {'padx': 10, 'sticky': 'WE', 'ipadx': 10, 'ipady': 10}
+main_window(root, 725, 540)
+opts = {'padx': 20, 'sticky': 'NSWE'}
 
-top_frame = ttk.Frame(root, height=180, style="GrooveBorder.TFrame")
+top_frame = ttk.Frame(root, style="Frames.TFrame")
 
-top_frame.grid_columnconfigure(0, weight=1)
+top_frame.grid_columnconfigure(0, weight=4)
 top_frame.grid_columnconfigure(1, weight=1)
-top_frame.grid_columnconfigure(2, weight=6)
+top_frame.grid_columnconfigure(2, weight=24)
 
 chosen_month = tk.StringVar()
 choose_month = ttk.OptionMenu(top_frame, chosen_month, current_month, *months_cz)
 choose_month.configure(width=8)
 
-progress = ttk.Progressbar(top_frame, length=100, mode='determinate', orient='horizontal')
+progress = ttk.Progressbar(top_frame, length=147, mode='determinate', orient='vertical')
 
-log_file_btn = ttk.Button(top_frame, width=1, text='Zobrazit napovedu', command=show_banner)
+help_btn = ttk.Button(top_frame, width=1, text='Zobrazit napovedu', command=show_banner)
 
-txt = ScrolledText(top_frame, width=2, height=5)
+txt = ScrolledText(top_frame, width=2, height=9)
 show_banner()
 
 start_btn = ttk.Button(top_frame, width=1, text='Start', state='disabled',
-                       command=lambda: amn(chosen_month.get(), last_data, txt))
+                       command=lambda: amn(chosen_month.get(), txt))
 
-btn_opts = {'sticky': 'we', 'padx': 5, 'pady': 5}
+btn_opts = {'sticky': 'nswe', 'pady': 5}
 
-choose_month.grid(row=0, column=0, **btn_opts)
-progress.grid(row=1, column=1, **btn_opts)
-start_btn.grid(row=1, column=0, **btn_opts)
-log_file_btn.grid(row=0, column=1, **btn_opts)
-txt.grid(row=0, column=2, rowspan=2, columnspan=2, **btn_opts)
+choose_month.grid(row=1, column=0, **btn_opts)
+progress.grid(row=0, column=1, **btn_opts, rowspan=3, padx=5)
+start_btn.grid(row=0, column=0, **btn_opts)
+help_btn.grid(row=2, column=0, **btn_opts)
+txt.grid(row=0, column=2, rowspan=3, columnspan=2, **btn_opts)
 
 top_frame.grid(row=0, column=0, **opts, pady=10)
 
-bottom_frame = ttk.Frame(root, height=400)
+bottom_frame = ttk.Frame(root, style="Frames.TFrame")
 bottom_frame.grid(row=1, column=0, **opts)
 
-tabs = ttk.Notebook(bottom_frame, width=700, height=400)
+tabs = ttk.Notebook(bottom_frame, width=680)
 tabs.grid(row=0, column=0)
 
 # companies = last_data.keys()
@@ -640,8 +684,38 @@ for company_name, file_paths in last_data.items():
 
     inter_btn_in.grid(row=5, column=0)
 
+    rename_tab_btn = ttk.Button(
+        company_frame,
+        text='Prejmenovat',
+        width=20,
+        command=lambda: rename_tab(
+            tabs.select()
+        )
+    )
+
+    rename_tab_btn.grid(row=8, column=0)
+
+    delete_tab_btn = ttk.Button(
+        company_frame,
+        text='Smazat',
+        width=20,
+        command=lambda: delete_tab(
+            tabs.select()
+        )
+    )
+
+    delete_tab_btn.grid(row=8, column=1)
+
     output_label = ttk.Label(company_frame, text='VYSTUP')
     output_label.grid(row=1, column=1)
+
+    output_open = ttk.Button(
+        company_frame,
+        text='Otevrit vystup',
+        command=lambda: open_output(tabs.select()),
+        state='disabled'
+    )
+    output_open.grid(row=5, column=1)
 
     up_btn_out = ttk.Button(
         company_frame,
@@ -728,7 +802,7 @@ for company_name, file_paths in last_data.items():
     delete_btn.grid(row=8, column=4)
 
     for w in company_frame.winfo_children():
-        w.grid(padx=10, pady=10, sticky='NWSE')
+        w.grid(padx=5, pady=5, sticky='NWSE')
     scrollbar.grid(row=3, column=5, sticky='NS', rowspan=3)
 
     tabs.add(company_frame, text=company_name)

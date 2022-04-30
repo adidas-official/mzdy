@@ -2,8 +2,7 @@ Navod:
 1) Export dat z ucto2022:
 Mzdy a zamestnanci -> Archiv
 Dalsi seznamy -> Seznam s tarify
-[F10] -> Tiskove sestavy
-Export do .DBF
+[F10] -> Tiskove sestavy -> Export do .DBF
 Vybrat tyto polozky v tomto poradi:
 -JmenoS:A,20;
 -RodCislo:A,12;
@@ -14,37 +13,34 @@ Davky1:F,6.0;
 Zamest:F,7.0'
 iNemoc:F,6.0;
 [Esc] Export do: [Cesta/k/souboru/s/daty]
--- [ENTER]; Prepsat [A]
-============================================
+[ENTER]; Prepsat [A]
+=========================================================
 2) Nacteni dat:
-- Zaskrtnout pole s nazvem firmy, pro ktere chcete vyplnit mzdove tabulky.
-- V pravem sloupci kliknete na tlacitko
-s popisem `Data` a vyberte soubor s daty,
-exportovanou v predchozim kroku.
-- Jmeno vybraneho souboru se zobrazi
-na tlacitku.
-- Pro spusteni procesu musi byt oznacena
-alespon jedna firma.
-============================================
+- Zaskrtnout pole s nazvem firmy, pro ktere chcete
+vyplnit mzdove tabulky.
+- V pravem sloupci kliknete na tlacitko s popisem `Data`
+a vyberte soubor s daty, exportovany v predchozim kroku.
+- Jmeno vybraneho souboru se zobrazi na tlacitku.
+- Pro spusteni procesu musi byt oznacena alespon jedna
+firma.
+=========================================================
 3) Zdrojove tabulky a slozka pro ulozeni
-- V levem sloupci ZDROJ vyberte pomoci
-tlacitek tabulku pro Urad prace a tabulku
-pro sefa.
-- V prostrednim sloupci vyberte slozku pro
-umisteni vyplnenych tabulek. Vytvori se
-kopie puvodnich souboru. Interni tabulka je
-potreba znovu zamknout.
-============================================
+- V levem sloupci ZDROJ vyberte pomoci tlacitek tabulku
+pro Urad prace a tabulku pro sefa.
+- V prostrednim sloupci vyberte slozku pro umisteni
+vyplnenych tabulek. Vytvori se kopie puvodnich souboru.
+Interni tabulku je potreba znovu zamknout.
+=========================================================
 4) Pojistovny
-- Sloupec Ucto2000 obsahuje kody pojistoven tak, jak byly ulozeny v programu ucto
-- Sloupec kod pojistovny obsahuje skutecne
-cislo pojistovny
-- Pomoci textovych poli a tlacitek
-pod tabulkou lze pridavat, menit a mazat
-jednotlive radky v tabulce.
-============================================
+- Sloupec Ucto2000 obsahuje kody pojistoven tak, jak byly
+ulozeny v programu ucto.
+- Sloupec kod pojistovny obsahuje skutecne cislo
+pojistovny.
+- Pomoci textovych poli a tlacitek pod tabulkou lze
+pridavat, menit a mazat jednotlive radky v tabulce.
+=========================================================
 5) Start
 - Vyberte mesic a kliknete na tlacitko Start
-- Program vyplni tabulky pro vybrane firmy
-a kopie ulozi do vybrane slozky
-============================================
+- Program vyplni tabulky pro vybrane firmy a kopie
+ulozi do vybrane slozky
+=========================================================
