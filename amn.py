@@ -558,6 +558,203 @@ def amn(month_name, text_field):
     logging.info("DONE")
 
 
+def make_frame(company_name):
+    if company_name in last_data:
+        file_paths = last_data[company_name]
+    else:
+        file_paths = False
+
+    company_frame = ttk.Frame(tabs)
+    company_frame.grid_columnconfigure(0, weight=1)
+    company_frame.grid_columnconfigure(1, weight=1)
+    company_frame.grid_columnconfigure(2, weight=1)
+    company_frame.grid_columnconfigure(3, weight=1)
+
+    active = tk.StringVar()
+    check_box = ttk.Checkbutton(
+        company_frame,
+        text=company_name,
+        onvalue=1,
+        offvalue=0,
+        variable=active,
+        command=lambda state=active: activate_tab(
+            tabs.select(),
+            state
+        )
+    )
+    check_box.grid(row=0, column=0)
+
+    src_label = ttk.Label(company_frame, text='ZDROJ')
+    src_label.grid(row=1, column=0)
+
+    up_label_in = ttk.Label(company_frame, text='pro u.p.')
+    up_label_in.grid(row=2, column=0)
+
+    up_btn_in = ttk.Button(
+        company_frame,
+        text='Vyberte soubor',
+        width=20,
+        state='disabled',
+        command=lambda: set_datas(
+            up_btn_in,
+            tabs.select(),
+            [('Spreadsheets', '*.xlsx')],
+            'src_file_up')
+    )
+
+    if file_paths:
+        up_btn_in['text'] = Path(file_paths['src_file_up']).name
+
+    up_btn_in.grid(row=3, column=0)
+
+    inter_label_in = ttk.Label(company_frame, text='interni')
+    inter_label_in.grid(row=4, column=0)
+
+    inter_btn_in = ttk.Button(
+        company_frame,
+        width=20,
+        state='disabled',
+        command=lambda: set_datas(
+            inter_btn_in,
+            tabs.select(),
+            [('Spreadsheets', '*.xlsx')],
+            'src_file_loc')
+    )
+    if file_paths:
+        inter_btn_in['text'] = Path(file_paths['src_file_loc']).name
+
+    inter_btn_in.grid(row=5, column=0)
+
+    rename_tab_btn = ttk.Button(
+        company_frame,
+        text='Prejmenovat',
+        width=20,
+        command=lambda: rename_tab(
+            tabs.select()
+        )
+    )
+
+    rename_tab_btn.grid(row=8, column=0)
+
+    delete_tab_btn = ttk.Button(
+        company_frame,
+        text='Smazat',
+        width=20,
+        command=lambda: delete_tab(
+            tabs.select()
+        )
+    )
+
+    delete_tab_btn.grid(row=8, column=1)
+
+    output_label = ttk.Label(company_frame, text='VYSTUP')
+    output_label.grid(row=1, column=1)
+
+    output_open = ttk.Button(
+        company_frame,
+        text='Otevrit vystup',
+        command=lambda: open_output(tabs.select()),
+        state='disabled'
+    )
+    output_open.grid(row=5, column=1)
+
+    up_btn_out = ttk.Button(
+        company_frame,
+        text='Vyberte',
+        width=20,
+        state='disabled',
+        command=lambda: set_dir(
+            up_btn_out,
+            tabs.select()
+        )
+    )
+
+    if file_paths:
+        up_btn_out['text'] = Path(file_paths['output']).name
+
+    up_btn_out.grid(row=3, column=1)
+
+    data_label = ttk.Label(company_frame, text='Data')
+    data_label.grid(row=0, column=2)
+
+    data_btn = ttk.Button(
+        company_frame,
+        text='Vyberte data',
+        width=20,
+        state='disabled',
+        command=lambda: set_datas(
+            data_btn,
+            tabs.select(),
+            [('CSV', '*.csv')],
+            'input_data'
+        )
+    )
+
+    if file_paths:
+        data_btn['text'] = Path(file_paths['input_data']).name
+
+    data_btn.grid(row=0, column=3, columnspan=3)
+
+    ins_groups_label = ttk.Label(company_frame, text='POJISTOVNY')
+    ins_groups_label.grid(row=1, column=2)
+
+    tree_label = ttk.Label(company_frame, text='kody zdravotnich pojistoven v ucto2000')
+    tree_label.grid(row=2, column=2, columnspan=3)
+    tree_cols = ('ucto_code', 'ins_code', 'ins_name')
+    tree = ttk.Treeview(company_frame, columns=tree_cols, show='headings')
+    tree.column('ucto_code', width=70)
+    tree.column('ins_code', width=100)
+    tree.heading('ucto_code', text='Ucto2000')
+    tree.heading('ins_code', text='kod pojistovny')
+    tree.heading('ins_name', text='nazev pojistovny')
+
+    load_ins_codes(company_name, tree)
+
+    tree.bind('<<TreeviewSelect>>', lambda event='<<TreeviewSelect>>', my_tree=tree: item_selected(event, my_tree))
+    tree.grid(row=3, column=2, columnspan=3, rowspan=3)
+    scrollbar = ttk.Scrollbar(company_frame, orient=tk.VERTICAL, command=tree.yview)
+    tree.configure(yscroll=scrollbar.set, height=5)
+
+    code_ucto_btn = ttk.Entry(company_frame, state='disabled')
+    code_ucto_btn.grid(row=7, column=2)
+
+    ins_code_btn = ttk.Entry(company_frame, state='disabled')
+    ins_code_btn.grid(row=7, column=3)
+
+    ins_name_btn = ttk.Entry(company_frame, state='disabled')
+    ins_name_btn.grid(row=7, column=4)
+
+    add_button = ttk.Button(
+        company_frame,
+        text="Pridat",
+        state='disabled',
+        command=lambda: add_new(tabs.select()))
+
+    add_button.grid(row=8, column=2)
+
+    update = ttk.Button(
+        company_frame,
+        text="Prepsat",
+        state='disabled',
+        command=lambda my_tree=tree: update_ins(tabs.select(), my_tree))
+
+    update.grid(row=8, column=3)
+
+    delete_btn = ttk.Button(
+        company_frame,
+        text="Smazat",
+        state='disabled',
+        command=lambda my_tree=tree: delete_record(tabs.select(), my_tree))
+
+    delete_btn.grid(row=8, column=4)
+
+    for w in company_frame.winfo_children():
+        w.grid(padx=5, pady=5, sticky='NWSE')
+    scrollbar.grid(row=3, column=5, sticky='NS', rowspan=3)
+
+    tabs.add(company_frame, text=company_name)
+
+
 def main_window(widget, width=0, height=0):
     screen_w, screen_h = widget.winfo_screenwidth(), widget.winfo_screenheight()
 
@@ -621,191 +818,25 @@ tabs = ttk.Notebook(bottom_frame, width=680)
 tabs.grid(row=0, column=0)
 
 # companies = last_data.keys()
-for company_name, file_paths in last_data.items():
+for cn in last_data:
+    make_frame(cn)
 
-    company_frame = ttk.Frame(tabs)
-    company_frame.grid_columnconfigure(0, weight=1)
-    company_frame.grid_columnconfigure(1, weight=1)
-    company_frame.grid_columnconfigure(2, weight=1)
-    company_frame.grid_columnconfigure(3, weight=1)
-    # company_frame.grid_columnconfigure(4, weight=1)
-    # company_frame.grid_columnconfigure(5, weight=1)
+# test_fp = list(last_data.values())[0]
+# make_frame('test', test_fp)
 
-    active = tk.StringVar()
-    check_box = ttk.Checkbutton(
-        company_frame,
-        text=company_name,
-        onvalue=1,
-        offvalue=0,
-        variable=active,
-        command=lambda state=active: activate_tab(
-            tabs.select(),
-            state
-        )
-    )
-    # tree.bind('<<TreeviewSelect>>', lambda event='<<TreeviewSelect>>', my_tree=tree: item_selected(event, my_tree))
-    check_box.grid(row=0, column=0)
-    # print(check_box.keys())
-    # print(check_box['variable'])
 
-    src_label = ttk.Label(company_frame, text='ZDROJ')
-    src_label.grid(row=1, column=0)
+new_frame = ttk.Frame(tabs)
+new_company_name_entry = ttk.Entry(new_frame)
+new_company_name_entry.grid(row=0, column=0)
+new_company_name_btn = ttk.Button(
+    new_frame,
+    text='Pridat',
+    width=20,
+    command=lambda: print(new_company_name_entry.get())
+)
 
-    up_label_in = ttk.Label(company_frame, text='pro u.p.')
-    up_label_in.grid(row=2, column=0)
-
-    up_btn_in = ttk.Button(
-        company_frame,
-        text=Path(file_paths['src_file_up']).name,
-        width=20,
-        state='disabled',
-        command=lambda: set_datas(
-            up_btn_in,
-            tabs.select(),
-            [('Spreadsheets', '*.xlsx')],
-            'src_file_up')
-    )
-    up_btn_in.grid(row=3, column=0)
-
-    inter_label_in = ttk.Label(company_frame, text='interni')
-    inter_label_in.grid(row=4, column=0)
-
-    inter_btn_in = ttk.Button(
-        company_frame,
-        text=Path(file_paths['src_file_loc']).name,
-        width=20,
-        state='disabled',
-        command=lambda: set_datas(
-            inter_btn_in,
-            tabs.select(),
-            [('Spreadsheets', '*.xlsx')],
-            'src_file_loc')
-    )
-
-    inter_btn_in.grid(row=5, column=0)
-
-    rename_tab_btn = ttk.Button(
-        company_frame,
-        text='Prejmenovat',
-        width=20,
-        command=lambda: rename_tab(
-            tabs.select()
-        )
-    )
-
-    rename_tab_btn.grid(row=8, column=0)
-
-    delete_tab_btn = ttk.Button(
-        company_frame,
-        text='Smazat',
-        width=20,
-        command=lambda: delete_tab(
-            tabs.select()
-        )
-    )
-
-    delete_tab_btn.grid(row=8, column=1)
-
-    output_label = ttk.Label(company_frame, text='VYSTUP')
-    output_label.grid(row=1, column=1)
-
-    output_open = ttk.Button(
-        company_frame,
-        text='Otevrit vystup',
-        command=lambda: open_output(tabs.select()),
-        state='disabled'
-    )
-    output_open.grid(row=5, column=1)
-
-    up_btn_out = ttk.Button(
-        company_frame,
-        text=Path(file_paths['output']).name,
-        width=20,
-        state='disabled',
-        command=lambda: set_dir(
-            up_btn_out,
-            tabs.select()
-        )
-    )
-
-    up_btn_out.grid(row=3, column=1)
-
-    data_label = ttk.Label(company_frame, text='Data')
-    data_label.grid(row=0, column=2)
-
-    data_btn = ttk.Button(
-        company_frame,
-        text=Path(file_paths['input_data']).name,
-        width=20,
-        state='disabled',
-        command=lambda: set_datas(
-            data_btn,
-            tabs.select(),
-            [('CSV', '*.csv')],
-            'input_data'
-        )
-    )
-
-    data_btn.grid(row=0, column=3, columnspan=3)
-
-    ins_groups_label = ttk.Label(company_frame, text='POJISTOVNY')
-    ins_groups_label.grid(row=1, column=2)
-
-    tree_label = ttk.Label(company_frame, text='kody zdravotnich pojistoven v ucto2000')
-    tree_label.grid(row=2, column=2, columnspan=3)
-    tree_cols = ('ucto_code', 'ins_code', 'ins_name')
-    tree = ttk.Treeview(company_frame, columns=tree_cols, show='headings')
-    tree.column('ucto_code', width=70)
-    tree.column('ins_code', width=100)
-    tree.heading('ucto_code', text='Ucto2000')
-    tree.heading('ins_code', text='kod pojistovny')
-    tree.heading('ins_name', text='nazev pojistovny')
-
-    load_ins_codes(company_name, tree)
-
-    tree.bind('<<TreeviewSelect>>', lambda event='<<TreeviewSelect>>', my_tree=tree: item_selected(event, my_tree))
-    tree.grid(row=3, column=2, columnspan=3, rowspan=3)
-    scrollbar = ttk.Scrollbar(company_frame, orient=tk.VERTICAL, command=tree.yview)
-    tree.configure(yscroll=scrollbar.set, height=5)
-
-    code_ucto_btn = ttk.Entry(company_frame, state='disabled')
-    code_ucto_btn.grid(row=7, column=2)
-
-    ins_code_btn = ttk.Entry(company_frame, state='disabled')
-    ins_code_btn.grid(row=7, column=3)
-
-    ins_name_btn = ttk.Entry(company_frame, state='disabled')
-    ins_name_btn.grid(row=7, column=4)
-
-    add_button = ttk.Button(
-        company_frame,
-        text="Pridat",
-        state='disabled',
-        command=lambda: add_new(tabs.select()))
-
-    add_button.grid(row=8, column=2)
-
-    update = ttk.Button(
-        company_frame,
-        text="Prepsat",
-        state='disabled',
-        command=lambda my_tree=tree: update_ins(tabs.select(), my_tree))
-
-    update.grid(row=8, column=3)
-
-    delete_btn = ttk.Button(
-        company_frame,
-        text="Smazat",
-        state='disabled',
-        command=lambda my_tree=tree: delete_record(tabs.select(), my_tree))
-
-    delete_btn.grid(row=8, column=4)
-
-    for w in company_frame.winfo_children():
-        w.grid(padx=5, pady=5, sticky='NWSE')
-    scrollbar.grid(row=3, column=5, sticky='NS', rowspan=3)
-
-    tabs.add(company_frame, text=company_name)
-tabs.add(ttk.Frame(tabs), text='+')
+new_company_name_btn.grid(row=0, column=1)
+tabs.add(new_frame, text='+')
+make_frame('test')
 
 root.mainloop()
