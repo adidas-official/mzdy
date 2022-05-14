@@ -1,1 +1,14 @@
-{"Fiala": {"input_data": "C:\\Users\\zdenek\\PycharmProjects\\mzdy\\INPUT\\fiala.CSV", "src_file_up": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\SRC\\jmenny_seznam_2022_03_24 Fiala.xlsx", "src_file_loc": "C:\\Users\\zdenek\\PycharmProjects\\mzdy\\SRC\\Mzdov\u00e9 n\u00e1klady 2022.xlsx", "output": "C:\\Users\\zdenek\\PycharmProjects\\mzdy\\OUTPUT"}, "Bereko": {"input_data": "C:\\Users\\zdenek\\PycharmProjects\\mzdy\\INPUT\\bereko.CSV", "src_file_up": "C:\\Users\\zdenek\\PycharmProjects\\mzdy\\SRC\\jmenny_seznam_2022_03_24 Bereko.xlsx", "src_file_loc": "C:\\Users\\zdenek\\PycharmProjects\\mzdy\\SRC\\mzdov\u00e9 n\u00e1klady bereko 2022.xlsx", "output": "C:\\Users\\zdenek\\PycharmProjects\\mzdy\\OUTPUT"}}
+{
+    "Fiala": {
+        "input_data": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\INPUT\\ARCHIVM.CSV",
+        "src_file_up": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\SRC\\jmenny_seznam_2022_03_24 Fiala.xlsx",
+        "src_file_loc": "C:\\Users\\zdenek\\PycharmProjects\\mzdy\\SRC\\Mzdov\u00e9 n\u00e1klady 2022.xlsx",
+        "output": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\OUTPUT"
+    },
+    "Bereko": {
+        "input_data": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\INPUT\\bereko.CSV",
+        "src_file_up": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\SRC\\jmenny_seznam_2022_03_24 Bereko.xlsx",
+        "src_file_loc": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\SRC\\mzdov\u00e9 n\u00e1klady bereko 2022.xlsx",
+        "output": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\OUTPUT"
+    }
+}

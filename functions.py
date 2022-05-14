@@ -1,10 +1,41 @@
 from pathlib import Path
 import json
 import tkinter as tk
+import subprocess
+from tkinter import simpledialog
+from tkinter.filedialog import askopenfilename, askdirectory
+from os import remove
 
 
-def open_log_file():
-    pass
+def main_window(widget, width=0, height=0):
+    screen_w, screen_h = widget.winfo_screenwidth(), widget.winfo_screenheight()
+
+    left = int(screen_w / 2) - int(width / 2)
+    top = int(screen_h / 2) - int(height / 2)
+
+    if width and height:
+        widget.geometry(f'{width}x{height}+{left}+{top}')
+    else:
+        widget.geometry('+%d+%d' % (500, 100))
+
+    widget.resizable(0, 0)
+
+
+def show_banner(txt):
+    txt.delete('1.0', tk.END)
+    banner = '''    _     __  __   _  _ 
+   /_\   |  \/  | | \| |			   |       Automatizace	
+  / _ \  | |\/| | | .` |	     |       Mzdových		   
+ /_/ \_\ |_|  |_| |_|\_|			   |       Nákladů			   
+========================================================= '''
+    txt.insert('1.0', banner)
+    get_help(txt)
+
+
+def get_help(txt):
+    with open('help.txt', 'r') as helpfile:
+        h = helpfile.read()
+    txt.insert(tk.END, h)
 
 
 def load_ins_codes(c_name, my_tree):
@@ -16,10 +47,11 @@ def load_ins_codes(c_name, my_tree):
             my_tree.insert('', tk.END, values=[ins_code, data[0], data[1]])
 
 
-def add_new(tab):
-    txt.delete('1.0', tk.END)
+def add_new(root, c_name, text_win, tab):
+
+    text_win.delete('1.0', tk.END)
     my_tree = root.nametowidget(tab + '.!treeview')
-    c_name = tabs.tab(tab)['text']
+    # c_name = tabs.tab(tab)['text']
 
     ins_codes_file = f'insurance_codes_{c_name}.json'
     ins_codes = []
@@ -41,35 +73,34 @@ def add_new(tab):
         if ucto_code_entry not in ins_codes and ins_code_entry not in i_codes:
             my_tree.insert('', tk.END, values=values)
         else:
-            txt.insert('1.0', 'Tento kod uz existuje.')
+            text_win.insert('1.0', 'Tento kod uz existuje.')
             print('This code is already used')
     else:
-        txt.insert('1.0', 'Vyplnte vsechna pole.')
+        text_win.insert('1.0', 'Vyplnte vsechna pole.')
         print('Fill out all fields')
 
-    save_ins(tab, my_tree)
+    save_ins(c_name, my_tree)
 
 
-def update_ins(tab, my_tree):
+def update_ins(window, c_name, tab, my_tree):
     selected = my_tree.focus()
-    ucto_code_entry = str(root.nametowidget(tab + '.!entry').get())
-    ins_code_entry = str(root.nametowidget(tab + '.!entry2').get())
-    ins_name_entry = root.nametowidget(tab + '.!entry3').get()
+    ucto_code_entry = str(window.nametowidget(tab + '.!entry').get())
+    ins_code_entry = str(window.nametowidget(tab + '.!entry2').get())
+    ins_name_entry = window.nametowidget(tab + '.!entry3').get()
 
     values = (ucto_code_entry, ins_code_entry, ins_name_entry)
     my_tree.item(selected, text="", values=values)
 
-    save_ins(tab, my_tree)
+    save_ins(c_name, my_tree)
 
 
-def delete_record(tab, my_tree):
+def delete_record(c_name, my_tree):
     selected = my_tree.focus()
     my_tree.delete(selected)
-    save_ins(tab, my_tree)
+    save_ins(c_name, my_tree)
 
 
-def save_ins(tab, my_tree):
-    c_name = tabs.tab(tab)['text']
+def save_ins(c_name, my_tree):
     ins_data = {}
     for row in my_tree.get_children():
         item = my_tree.item(row)['values']
@@ -85,15 +116,77 @@ def save_ins(tab, my_tree):
         Path(ins_codes_file).touch()
 
     with open(f'insurance_codes_{c_name}.json', 'w') as outfile:
-        json.dump(ins_data, outfile)
+        outfile.write(json.dumps(ins_data, indent=4))
+        # json.dump(ins_data, outfile)
 
 
-# noinspection PyUnusedLocal
-def item_selected(event, my_tree):
+def rename_tab(window, companies, last_data, tab, tabs):
+    c_name = tabs.tab(tab)['text']
+    btn = window.nametowidget(tab + '.!checkbutton')
+    new_name = simpledialog.askstring("Input", "Test", parent=window)
+
+    if c_name in companies:
+        index = companies.index(c_name)
+        companies.pop(index)
+        companies.append(new_name)
+
+    tabs.tab(tab, text=new_name)
+    new_data = {new_name if k == c_name else k:v for k, v in last_data.items()}
+    btn['text'] = new_name
+
+    with open(f'structure.json', 'w') as outfile:
+        outfile.write(json.dumps(new_data, indent=4))
+
+    if Path(f'insurance_codes_{c_name}.json').exists():
+        Path(f'insurance_codes_{c_name}.json').rename(f'insurance_codes_{new_name}.json')
+
+
+def delete_tab(last_data, companies, tabs):
+    c_name = tabs.tab(tabs.select())['text']
+    ins_file = Path(f'insurance_codes_{c_name}.json')
+
+    if c_name in last_data:
+        del last_data[c_name]
+        with open(f'structure.json', 'w') as outfile:
+            outfile.write(json.dumps(last_data, indent=4))
+
+    if c_name in companies:
+        companies.remove(c_name)
+
+    if ins_file.exists():
+        print('deleting insurance file.')
+        remove(ins_file)
+    else:
+        print('No insurance file found.')
+
+    tabs.forget(tabs.select())
+    print(tabs.children)
+
+
+def open_output(c_name, last_data):
+    output_folder = last_data[c_name]['output']
+    subprocess.Popen(f'explorer {output_folder}')
+
+
+# def new_company(companies, last_data):
+#     new_name = new_company_name_entry.get()
+#     companies.append(new_name)
+#     if new_name not in last_data:
+#         last_data[new_name] = {'input_data': '', 'src_file_up': '', 'src_file_loc': '', 'output': ''}
+#         make_frame(new_name)
+#         with open(f'structure.json', 'w') as outfile:
+#             outfile.write(json.dumps(last_data, indent=4))
+#             # json.dump(last_data, outfile)
+#
+#     else:
+#         print(f'{new_name} already exists')
+
+
+def item_selected(window, event, my_tree):
     c_frame = my_tree.winfo_parent()
-    ucto_code_entry = root.nametowidget(c_frame + '.!entry')
-    ins_code_entry = root.nametowidget(c_frame + '.!entry2')
-    ins_name_entry = root.nametowidget(c_frame + '.!entry3')
+    ucto_code_entry = window.nametowidget(c_frame + '.!entry')
+    ins_code_entry = window.nametowidget(c_frame + '.!entry2')
+    ins_name_entry = window.nametowidget(c_frame + '.!entry3')
 
     ucto_code_entry.delete(0, tk.END)
     ins_code_entry.delete(0, tk.END)
@@ -108,62 +201,48 @@ def item_selected(event, my_tree):
     ins_name_entry.insert(0, record[2])
 
 
-def select_log_file():
-    filetypes = [
-        ('log file', '*.log')
-    ]
-
-    filename = askopenfilename(
-        title='Open a file',
-        initialdir='.',
-        filetypes=filetypes
-    )
-
-    if filename:
-        file = Path(filename).name
-        # files['log file'] = filename
-        print(file)
-        log_file_btn['text'] = file
-    else:
-        log_file_btn['text'] = 'Choose log file'
-
-
-def activate_tab(tab, act):
+def activate_tab(window, tab, act, start_btn, c_name, companies):
     state = act.get()
-    btn = root.nametowidget(tab + '.!checkbutton')
+    # c_name = tabs.tab(tab)['text']
     buttons = ['.!button',
                '.!button2',
-               '.!button3',
-               '.!button4',
                '.!button5',
                '.!button6',
                '.!button7',
+               '.!button8',
+               '.!button9',
+               '.!button10',
                '.!entry',
                '.!entry2',
                '.!entry3']
 
     if state == '0':
         for b in buttons:
-            root.nametowidget(tab + b)['state'] = 'disabled'
+            window.nametowidget(tab + b)['state'] = 'disabled'
+        if c_name in companies:
+            companies.remove(c_name)
     else:
         for b in buttons:
-            root.nametowidget(tab + b)['state'] = 'enabled'
+            window.nametowidget(tab + b)['state'] = 'enabled'
+        if c_name not in companies:
+            companies.append(c_name)
+
+    if len(companies) > 0:
+        start_btn['state'] = 'enabled'
+    else:
+        start_btn['state'] = 'disabled'
 
 
-def set_dir(btn, comp):
-    c_name = tabs.tab(comp)["text"]
+def set_dir(window, c_name, btn, comp, last_data):
     dir_name = askdirectory(title='Choose output folder', initialdir='.')
     if dir_name:
-        root.nametowidget(comp + '.' + btn.winfo_name())["text"] = str(Path(dir_name).name)
+        window.nametowidget(comp + '.' + btn.winfo_name())["text"] = str(Path(dir_name).name)
         last_data[c_name]['output'] = str(Path(dir_name))
         with open('structure.json', 'w', encoding='cp1250') as input_file:
-            input_file.write(json.dumps(last_data))
+            input_file.write(json.dumps(last_data, indent=4))
 
 
-def set_datas(btn, comp, filetypes, key_name):
-    # print(comp)  # .!frame2.!notebook.!frame, .!frame2.!notebook.!frame2
-    c_name = tabs.tab(comp)["text"]
-    # print(company_name)  # Fiala, Bereko
+def set_datas(window, c_name, last_data, btn, comp, filetypes, key_name):
 
     filename = askopenfilename(
         title='Open a file',
@@ -173,8 +252,8 @@ def set_datas(btn, comp, filetypes, key_name):
 
     if filename:
         file = Path(filename).name
-        root.nametowidget(comp + '.' + btn.winfo_name())['text'] = file
+        window.nametowidget(comp + '.' + btn.winfo_name())['text'] = file
 
         last_data[c_name][key_name] = str(Path(filename))
         with open('structure.json', 'w', encoding='cp1250') as input_file:
-            input_file.write(json.dumps(last_data))
+            input_file.write(json.dumps(last_data, indent=4))
