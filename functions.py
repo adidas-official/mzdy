@@ -4,6 +4,7 @@ import tkinter as tk
 import subprocess
 from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename, askdirectory
+from tkinter.messagebox import askyesno
 from os import remove
 
 
@@ -123,44 +124,51 @@ def save_ins(c_name, my_tree):
 def rename_tab(window, companies, last_data, tab, tabs):
     c_name = tabs.tab(tab)['text']
     btn = window.nametowidget(tab + '.!checkbutton')
-    new_name = simpledialog.askstring("Input", "Test", parent=window)
+    new_name = simpledialog.askstring("Prejmenovat", "Novy nazev", parent=window)
+    
+    confirm = askyesno(title="POZOR", message="Opravdu chcete prejmenovat firmu?")
+    
+    if confirm:
 
-    if c_name in companies:
-        index = companies.index(c_name)
-        companies.pop(index)
-        companies.append(new_name)
+        if c_name in companies:
+            index = companies.index(c_name)
+            companies.pop(index)
+            companies.append(new_name)
 
-    tabs.tab(tab, text=new_name)
-    new_data = {new_name if k == c_name else k:v for k, v in last_data.items()}
-    btn['text'] = new_name
+        tabs.tab(tab, text=new_name)
+        new_data = {new_name if k == c_name else k:v for k, v in last_data.items()}
+        btn['text'] = new_name
 
-    with open(f'structure.json', 'w') as outfile:
-        outfile.write(json.dumps(new_data, indent=4))
+        with open(f'structure.json', 'w') as outfile:
+            outfile.write(json.dumps(new_data, indent=4))
 
-    if Path(f'insurance_codes_{c_name}.json').exists():
-        Path(f'insurance_codes_{c_name}.json').rename(f'insurance_codes_{new_name}.json')
+        if Path(f'insurance_codes_{c_name}.json').exists():
+            Path(f'insurance_codes_{c_name}.json').rename(f'insurance_codes_{new_name}.json')
 
 
 def delete_tab(last_data, companies, tabs):
-    c_name = tabs.tab(tabs.select())['text']
-    ins_file = Path(f'insurance_codes_{c_name}.json')
 
-    if c_name in last_data:
-        del last_data[c_name]
-        with open(f'structure.json', 'w') as outfile:
-            outfile.write(json.dumps(last_data, indent=4))
+    confirm = askyesno(title="POZOR", message="Chcete smazat firmu?")
+    
+    if confirm:
+        c_name = tabs.tab(tabs.select())['text']
+        ins_file = Path(f'insurance_codes_{c_name}.json')
 
-    if c_name in companies:
-        companies.remove(c_name)
+        if c_name in last_data:
+            del last_data[c_name]
+            with open(f'structure.json', 'w') as outfile:
+                outfile.write(json.dumps(last_data, indent=4))
 
-    if ins_file.exists():
-        print('deleting insurance file.')
-        remove(ins_file)
-    else:
-        print('No insurance file found.')
+        if c_name in companies:
+            companies.remove(c_name)
 
-    tabs.forget(tabs.select())
-    print(tabs.children)
+        if ins_file.exists():
+            print('deleting insurance file.')
+            remove(ins_file)
+        else:
+            print('No insurance file found.')
+
+        tabs.forget(tabs.select())
 
 
 def open_output(c_name, last_data):
@@ -234,7 +242,14 @@ def activate_tab(window, tab, act, start_btn, c_name, companies):
 
 
 def set_dir(window, c_name, btn, comp, last_data):
-    dir_name = askdirectory(title='Choose output folder', initialdir='.')
+    last_dir = Path(last_data[c_name]['output'])
+    if last_dir.exists():
+        initdir = last_dir
+    else:
+        initdir = Path.home()
+    
+    dir_name = askdirectory(title='Choose output folder', initialdir=initdir)
+
     if dir_name:
         window.nametowidget(comp + '.' + btn.winfo_name())["text"] = str(Path(dir_name).name)
         last_data[c_name]['output'] = str(Path(dir_name))
@@ -244,9 +259,16 @@ def set_dir(window, c_name, btn, comp, last_data):
 
 def set_datas(window, c_name, last_data, btn, comp, filetypes, key_name):
 
+    last_dir = Path(last_data[c_name][key_name]).parent
+    if last_dir.exists():
+        initdir = last_dir
+    else:
+        initdir = Path.home()
+        
+
     filename = askopenfilename(
         title='Open a file',
-        initialdir='.',
+        initialdir=initdir,
         filetypes=filetypes
     )
 

@@ -9,6 +9,7 @@ Vybrat tyto polozky v tomto poradi:
 CisPoj:A,5;
 Kat:A,3;
 Davky1:F,6.0;
+Davky2:F,6.0;
 -HrubaMzda:F,7.0;
 Zamest:F,7.0'
 iNemoc:F,6.0;

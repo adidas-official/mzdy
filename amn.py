@@ -128,26 +128,33 @@ def amn(month_name, text_field):
 
             # calculate salary
             total_expenses = 0
-            for exp in i[5:]:
+            total_expenses_up = 0
+            
+            for exp in i[6:]:
                 try:
                     total_expenses += int(exp)
                 except ValueError:
                     continue
+                    
+            if i[4]:
+                if i[5]:
+                    total_expenses_up = total_expenses - int(i[4]) - int(i[5])
+                    expenses = (total_expenses, int(i[4]) + int(i[5]))
+                else:
+                    total_expenses_up = total_expenses - int(i[4])
+                    expenses = (total_expenses, int(i[4]))
+            else:
+                expenses = (total_expenses, '')
+            employees_inter.setdefault(lname + ' ' + fname, expenses)
 
             # noinspection PyTypeChecker
             employees_up.setdefault(id_num, {'first name': fname,
                                              'last name': lname,
                                              'ins code': ins_group_code,
                                              'cat': category,
-                                             'payment expenses': total_expenses
+                                             'payment expenses': total_expenses_up
                                              })
 
-            if i[4]:
-                expenses = (total_expenses, int(i[4]))
-            else:
-                expenses = (total_expenses, '')
-            employees_inter.setdefault(lname + ' ' + fname, expenses)
-            # print(employees_inter)
 
         # open mzdy UP table, go through each name in data and check if it is in table
         sheets = ['2) jmenný seznam', '3) nákl. prov. z. a prac. a.']
@@ -255,6 +262,7 @@ def amn(month_name, text_field):
                     # smazat v xlsx status pro tento mesic
                     if sheet_name == sheets[0]:
                         ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ''
+                        ws.cell(row=row_num, column=col_letter_pay[sheet_name]).value = ''
                 root.update_idletasks()
 
         save_loc = Path(input_output['output']) / f'temp-{c_name}-up.xlsx'
@@ -273,7 +281,7 @@ def amn(month_name, text_field):
                         office_file.decrypt(decrypted_wb)
 
                     wb = openpyxl.load_workbook(filename=decrypted_wb)
-                except UnboundLocalError:
+                except UnboundLocalError or msoffcrypto.exceptions.FileFormatError:
                     wb = openpyxl.load_workbook(input_output['src_file_loc'])
 
                 text_field.insert(tk.END, 'Vyplnuji data do interni tabulky\n')
