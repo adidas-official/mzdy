@@ -4,12 +4,19 @@
 # Mzdovych     |
 # Nakladu      |
 # -------------+
-# v3
+# v4
 # author: Zdenek Frydryn
 # created for: Bereko s.r.o., Drogerie Fiala s.r.o.,
 # Description: Automatizace vyplnovani mezd do xlsx tabulek pro urad prace a internich tabulek.
 
 # TOOD:
+# - delete data from later columns in up table list 3
+# - delete cost in list 3 if is 13 600 in up table
+# - add cost formula 13 600 - x to list 3 in up table
+# - make local copy of structure.json and use that instead of rewriting global
+# - use csv headers as dictionary keys for better code readability
+# - add start/end employment, type and start of pension to new employees
+# - open src folder and output folder for manual copying of checked files
 # --------------------------------------------------------------------------------
 
 import logging
@@ -26,7 +33,7 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from datetime import datetime
 from functions import load_ins_codes, add_new, update_ins, delete_record, item_selected, activate_tab, set_dir, \
-    show_banner, set_datas, rename_tab, open_output, delete_tab, main_window
+    show_banner, set_datas, rename_tab, open_output, delete_tab, main_window, prepare_input
 
 logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w',
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -90,71 +97,73 @@ def amn(month_name, text_field):
         else:
             ws.cell(row=6, column=4).value = 4
 
-        with open(input_output['input_data'], 'r', encoding='cp1250') as empl_data_csv:
-            empl_data_reader = csv.reader(empl_data_csv)
-            empl_data = list(empl_data_reader)
-            empl_data = empl_data[1:]
-
-        employees_up = {}
-        employees_inter = {}
-
-        # get data for each employee
-        # split data to first name, last name, id, ins.group and money
-        for i in empl_data:
-
-            # get first name and last name
-            name = i[0][1:-1]
-            full_name = name.split(' ')
-            lname = full_name[0]
-
-            # Name might include title, merge first name with title
-            if len(full_name) > 2:
-                fname = " ".join(full_name[1:])
-            else:
-                fname = full_name[1]
-
-            # get id number of employee
-            id_num = i[1][1:-1].replace('/', '')
-
-            # get code of insurance group
-            ins = i[2][1:-1]
-            if ins in ins_codes:
-                ins_group_code = ins_codes[ins][0]
-            else:
-                ins_group_code = 999
-
-            # get category of employment contract
-            category = i[3][1:-1]
-
-            # calculate salary
-            total_expenses = 0
-            total_expenses_up = 0
-            
-            for exp in i[6:]:
-                try:
-                    total_expenses += int(exp)
-                except ValueError:
-                    continue
-                    
-            if i[4]:
-                if i[5]:
-                    total_expenses_up = total_expenses - int(i[4]) - int(i[5])
-                    expenses = (total_expenses, int(i[4]) + int(i[5]))
-                else:
-                    total_expenses_up = total_expenses - int(i[4])
-                    expenses = (total_expenses, int(i[4]))
-            else:
-                expenses = (total_expenses, '')
-            employees_inter.setdefault(lname + ' ' + fname, expenses)
-
-            # noinspection PyTypeChecker
-            employees_up.setdefault(id_num, {'first name': fname,
-                                             'last name': lname,
-                                             'ins code': ins_group_code,
-                                             'cat': category,
-                                             'payment expenses': total_expenses_up
-                                             })
-
+        employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)
+        # with open(input_output['input_data'], 'r', encoding='cp1250') as empl_data_csv:
+        #     empl_data_reader = csv.reader(empl_data_csv)
+        #     empl_data = list(empl_data_reader)
+        #     empl_data = empl_data[1:]
+        #
+        # employees_up = {}
+        # employees_inter = {}
+        #
+        # # get data for each employee
+        # # split data to first name, last name, id, ins.group and money
+        # for i in empl_data:
+        #
+        #     # get first name and last name
+        #     name = i[0][1:-1]
+        #     full_name = name.split(' ')
+        #     lname = full_name[0]
+        #
+        #     # Name might include title, merge first name with title
+        #     if len(full_name) > 2:
+        #         fname = " ".join(full_name[1:])
+        #     else:
+        #         fname = full_name[1]
+        #
+        #     # get id number of employee
+        #     id_num = i[1][1:-1].replace('/', '')
+        #
+        #     # get code of insurance group
+        #     ins = i[2][1:-1]
+        #     if ins in ins_codes:
+        #         ins_group_code = ins_codes[ins][0]
+        #     else:
+        #         ins_group_code = 999
+        #
+        #     # get category of employment contract
+        #     category = i[3][1:-1]
+        #
+        #     # calculate salary
+        #     total_expenses = 0
+        #     total_expenses_up = 0
+        #
+        #     for exp in i[6:]:
+        #         try:
+        #             total_expenses += int(exp)
+        #         except ValueError:
+        #             continue
+        #
+        #     if i[4]:
+        #         if i[5]:
+        #             total_expenses_up = total_expenses - int(i[4]) - int(i[5])
+        #             expenses = (total_expenses, int(i[4]) + int(i[5]))
+        #         else:
+        #             total_expenses_up = total_expenses - int(i[4])
+        #             expenses = (total_expenses, int(i[4]))
+        #     else:
+        #         expenses = (total_expenses, '')
+        #     employees_inter.setdefault(lname + ' ' + fname, expenses)
+        #
+        #     # noinspection PyTypeChecker
+        #     employees_up.setdefault(id_num, {'first name': fname,
+        #                                      'last name': lname,
+        #                                      'ins code': ins_group_code,
+        #                                      'cat': category,
+        #                                      'payment expenses': total_expenses_up
+        #                                      })
+        # print(employees_up)
+        # print(employees_inter)
 
         # open mzdy UP table, go through each name in data and check if it is in table
         sheets = ['2) jmenný seznam', '3) nákl. prov. z. a prac. a.']
@@ -188,10 +197,11 @@ def amn(month_name, text_field):
             last_rows.append(last_row)
 
         for emp_id, emp_data in employees_up.items():
+            # print(emp_id, type(emp_id))
             progress['value'] += 100 / (len(employees_up))
             found = False
             for sheet_name, sheet_data in ids_in_xlsx.items():
-                if emp_id in sheet_data:
+                if str(emp_id) in sheet_data:
                     found = True
             if not found:
                 logging.info(f"Novy zamestnanec {emp_data['first name']} {emp_data['last name']}")
@@ -219,7 +229,7 @@ def amn(month_name, text_field):
                     ws = wb[sheets[1]]
                     ws.cell(row=last_rows[1] + 1, column=2).value = emp_data['last name']
                     ws.cell(row=last_rows[1] + 1, column=3).value = emp_data['first name']
-                    ws.cell(row=last_rows[1] + 1, column=4).value = emp_id[:6] + '/' + emp_id[6:]
+                    ws.cell(row=last_rows[1] + 1, column=4).value = str(emp_id)[:6] + '/' + str(emp_id)[6:]
                     ws.cell(row=last_rows[1] + 1, column=col_letter_pay[ws.title]).value = emp_data['payment expenses']
                     ws.cell(row=last_rows[1] + 1, column=5).value = '-\'\'-'
                     ws.cell(row=last_rows[1] + 1, column=6).value = 'PA'
@@ -234,26 +244,57 @@ def amn(month_name, text_field):
             ws = wb[sheet_name]
 
             for id_num, row_num in data.items():
+                # print(id_num, type(id_num))
                 progress['value'] += 100 / (len(data.items()))
                 if id_num in employees_up:
-                    text_field.insert(tk.END,
-                                      f"|- {employees_up[id_num]['first name']} {employees_up[id_num]['last name']}:{employees_up[id_num]['payment expenses']}\n")
+                    text_field.insert(
+                        tk.END,
+                        f"|- {employees_up[id_num]['first name']} {employees_up[id_num]['last name']}:{employees_up[id_num]['payment expenses']}\n")
                     logging.info(
                         f"Vyplnuji vyplatu pro {employees_up[id_num]['first name']} {employees_up[id_num]['last name']} v listu {sheet_name}:{employees_up[id_num]['payment expenses']}")
                     # zadat plat za tento mesic
                     ws.cell(row=row_num, column=col_letter_pay[sheet_name]).value = employees_up[id_num][
                         'payment expenses']
-                    if sheet_name == sheets[0] and col_letter_pay[sheet_name] > 11:
-                        ozp_status = ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 6).value
-                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ozp_status
-                    elif col_letter_pay[sheet_name] == 11:
-                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 4).value = ''
-                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 5).value = ''
-                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 9).value = ''
-                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 10).value = ''
-                    elif col_letter_pay[sheet_name] == 16:
-                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 4).value = ''
-                        ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 5).value = ''
+                    if sheet_name == sheets[0]:
+                        if col_letter_pay[sheet_name] == 21:  # last month
+                            ozp_status = ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 6).value
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ozp_status
+
+                            # add formula if salary is > 0
+                            if employees_up[id_num]['payment expenses']:
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 12).value = f'=13600-L{row_num}'
+                            else:
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 12).value = ''
+                        elif col_letter_pay[sheet_name] == 11:  # first month
+                            # delete salary in next 2 months
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 4).value = ''
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 5).value = ''
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 9).value = ''
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 10).value = ''
+
+                            # add formula if salary is > 0
+                            if employees_up[id_num]['payment expenses']:
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 14).value = f'=13600-L{row_num}'
+                            else:
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 14).value = ''
+
+                        elif col_letter_pay[sheet_name] == 16:  # second month
+                            ozp_status = ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 6).value
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ozp_status
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 4).value = ''
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 5).value = ''
+
+                            # add formula if salary is > 0
+                            if employees_up[id_num]['payment expenses']:
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 13).value = f'=13600-L{row_num}'
+                            else:
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 13).value = ''
+                    elif sheet_name == sheets[1]:
+                        if col_letter_pay[sheet_name] == 9:  # first month
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 1).value = ''
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 2).value = ''
+                        elif col_letter_pay[sheet_name] == 10:  # second month
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 1).value = ''
 
                 else:
                     text_field.insert(tk.END,

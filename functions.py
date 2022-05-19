@@ -1,11 +1,67 @@
 from pathlib import Path
 import json
+import csv
 import tkinter as tk
 import subprocess
 from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename, askdirectory
 from tkinter.messagebox import askyesno
 from os import remove
+
+
+def prepare_input(input_file, c_name):
+
+    up_table = {}
+    inter_table = {}
+    ins_codes = {}
+
+    if Path(f'insurance_codes_{c_name}.json').exists():
+        with open(f'insurance_codes_{c_name}.json', 'r') as ins_file:
+            ins_codes = json.load(ins_file)
+
+    with open(input_file, 'r', encoding='cp1250') as empl_data_csv:
+        empl_dict_reader = csv.DictReader(empl_data_csv)
+
+        for row in empl_dict_reader:
+
+            rodcis = row['RodCislo'][1:-1].replace('/', '')
+            full_name = row['JmenoS'][1:-1].split(' ')
+
+            # Name might include title, merge first name with title
+            if len(full_name) > 2:
+                fname = " ".join(full_name[1:])
+            else:
+                fname = full_name[1]
+
+            lname = full_name[0]
+
+            ins = row['CisPoj'][1:-1]
+            cat = row['Kat'][1:-1]
+            fare = 0
+
+            for fare_cost in [row['Davky1'], row['Davky2']]:
+                if fare_cost:
+                    fare += int(fare_cost)
+
+            exp = 0
+            for cost in [row['HrubaMzda'], row['Zamest'], row['iNemoc']]:
+                if cost:
+                    exp += int(cost)
+
+            if ins in ins_codes:
+                ins_group_code = ins_codes[ins][0]
+            else:
+                ins_group_code = 999
+
+            fare = 0
+            for fare_cost in [row['Davky1'], row['Davky2']]:
+                if fare_cost:
+                    fare += int(fare_cost)
+
+            up_table.setdefault(rodcis, {'first name': fname, 'last name': lname, 'ins code': ins_group_code, 'cat': cat, 'payment expenses': exp - fare})
+            inter_table.setdefault(lname + ' ' + fname, (exp, fare))
+
+    return up_table, inter_table
 
 
 def main_window(widget, width=0, height=0):
