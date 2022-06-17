@@ -40,26 +40,33 @@ def prepare_input(input_file, c_name):
             fare = 0
 
             for fare_cost in [row['Davky1'], row['Davky2']]:
-                if fare_cost:
+                if fare_cost and cat == 'INV':
                     fare += int(fare_cost)
 
             exp = 0
-            for cost in [row['HrubaMzda'], row['Zamest'], row['iNemoc']]:
-                if cost:
-                    exp += int(cost)
+            total_exp = 0
+            
+            if cat == 'INV':
+                for cost in [row['HrubaMzda'], row['Zamest'], row['iNemoc']]:
+                    if cost:
+                        exp += int(cost)
+                total_exp = exp
+            else:
+                for cost in [row['HrubaMzda'], row['Zamest']]:
+                    if cost:
+                        exp += int(cost)
+                if row['iNemoc']:
+                    total_exp = exp + int(row['iNemoc'])
+                else:
+                    total_exp = exp
 
             if ins in ins_codes:
                 ins_group_code = ins_codes[ins][0]
             else:
                 ins_group_code = 999
 
-            fare = 0
-            for fare_cost in [row['Davky1'], row['Davky2']]:
-                if fare_cost:
-                    fare += int(fare_cost)
-
             up_table.setdefault(rodcis, {'first name': fname, 'last name': lname, 'ins code': ins_group_code, 'cat': cat, 'payment expenses': exp - fare})
-            inter_table.setdefault(lname + ' ' + fname, (exp, fare))
+            inter_table.setdefault(lname + ' ' + fname, (total_exp, fare))
 
     return up_table, inter_table
 

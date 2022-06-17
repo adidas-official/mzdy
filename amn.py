@@ -10,9 +10,6 @@
 # Description: Automatizace vyplnovani mezd do xlsx tabulek pro urad prace a internich tabulek.
 
 # TOOD:
-# - delete data from later columns in up table list 3
-# - delete cost in list 3 if is 13 600 in up table
-# - add cost formula 13 600 - x to list 3 in up table
 # - make local copy of structure.json and use that instead of rewriting global
 # - use csv headers as dictionary keys for better code readability
 # - add start/end employment, type and start of pension to new employees
@@ -98,72 +95,6 @@ def amn(month_name, text_field):
             ws.cell(row=6, column=4).value = 4
 
         employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)
-        # with open(input_output['input_data'], 'r', encoding='cp1250') as empl_data_csv:
-        #     empl_data_reader = csv.reader(empl_data_csv)
-        #     empl_data = list(empl_data_reader)
-        #     empl_data = empl_data[1:]
-        #
-        # employees_up = {}
-        # employees_inter = {}
-        #
-        # # get data for each employee
-        # # split data to first name, last name, id, ins.group and money
-        # for i in empl_data:
-        #
-        #     # get first name and last name
-        #     name = i[0][1:-1]
-        #     full_name = name.split(' ')
-        #     lname = full_name[0]
-        #
-        #     # Name might include title, merge first name with title
-        #     if len(full_name) > 2:
-        #         fname = " ".join(full_name[1:])
-        #     else:
-        #         fname = full_name[1]
-        #
-        #     # get id number of employee
-        #     id_num = i[1][1:-1].replace('/', '')
-        #
-        #     # get code of insurance group
-        #     ins = i[2][1:-1]
-        #     if ins in ins_codes:
-        #         ins_group_code = ins_codes[ins][0]
-        #     else:
-        #         ins_group_code = 999
-        #
-        #     # get category of employment contract
-        #     category = i[3][1:-1]
-        #
-        #     # calculate salary
-        #     total_expenses = 0
-        #     total_expenses_up = 0
-        #
-        #     for exp in i[6:]:
-        #         try:
-        #             total_expenses += int(exp)
-        #         except ValueError:
-        #             continue
-        #
-        #     if i[4]:
-        #         if i[5]:
-        #             total_expenses_up = total_expenses - int(i[4]) - int(i[5])
-        #             expenses = (total_expenses, int(i[4]) + int(i[5]))
-        #         else:
-        #             total_expenses_up = total_expenses - int(i[4])
-        #             expenses = (total_expenses, int(i[4]))
-        #     else:
-        #         expenses = (total_expenses, '')
-        #     employees_inter.setdefault(lname + ' ' + fname, expenses)
-        #
-        #     # noinspection PyTypeChecker
-        #     employees_up.setdefault(id_num, {'first name': fname,
-        #                                      'last name': lname,
-        #                                      'ins code': ins_group_code,
-        #                                      'cat': category,
-        #                                      'payment expenses': total_expenses_up
-        #                                      })
-        # print(employees_up)
-        # print(employees_inter)
 
         # open mzdy UP table, go through each name in data and check if it is in table
         sheets = ['2) jmenný seznam', '3) nákl. prov. z. a prac. a.']
