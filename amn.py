@@ -21,7 +21,7 @@ import csv
 import openpyxl
 import msoffcrypto
 from pathlib import Path
-from openpyxl.utils import column_index_from_string
+from openpyxl.utils import column_index_from_string, get_column_letter
 from months_cz import months_cz
 from io import BytesIO
 import json
@@ -193,7 +193,7 @@ def amn(month_name, text_field):
 
                             # add formula if salary is > 0
                             if employees_up[id_num]['payment expenses']:
-                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 12).value = f'=13600-L{row_num}'
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 12).value = f'=13600-{get_column_letter(col_letter_pay[sheet_name]+1)}{row_num}'
                             else:
                                 ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 12).value = ''
                         elif col_letter_pay[sheet_name] == 11:  # first month
@@ -205,7 +205,7 @@ def amn(month_name, text_field):
 
                             # add formula if salary is > 0
                             if employees_up[id_num]['payment expenses']:
-                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 14).value = f'=13600-L{row_num}'
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 14).value = f'=13600-{get_column_letter(col_letter_pay[sheet_name]+1)}{row_num}'
                             else:
                                 ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 14).value = ''
 
@@ -217,7 +217,7 @@ def amn(month_name, text_field):
 
                             # add formula if salary is > 0
                             if employees_up[id_num]['payment expenses']:
-                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 13).value = f'=13600-L{row_num}'
+                                ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 13).value = f'=13600-{get_column_letter(col_letter_pay[sheet_name]+1)}{row_num}'
                             else:
                                 ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 13).value = ''
                     elif sheet_name == sheets[1]:
