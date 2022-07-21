@@ -4,3 +4,5 @@
 /OUTPUT/*
 *.ai
 *.log
+/new_ppl.txt
+/PRACOV.CSV

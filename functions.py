@@ -9,6 +9,33 @@ from tkinter.messagebox import askyesno
 from os import remove
 
 
+def check_new_ppl(input_file):
+    with open(input_file, 'r', encoding='cp1250') as pracov:
+        new_or_dead_p = {}
+        dreader = csv.DictReader(pracov)
+        to_add_mil = ['VstupDoZam', 'UkonceniZam', 'DuchOd']
+
+        for row in dreader:
+            rodcis = row['RodCislo'].replace('/', '').replace('"', '').replace('\'', '').replace('\n', '')
+            new_or_dead_p.setdefault(rodcis, {})
+
+            for d in to_add_mil:
+                if row[d]:
+                    new_or_dead_p[rodcis][d] = row[d][1:-3] + '20' + row[d][-3:-1]
+                else:
+                    new_or_dead_p[rodcis][d] = ''
+
+            if 'invalidní 3.stup' in row['TypDuch']:
+                pension_type = 'TZP'
+            elif 'invalidní 1.nebo' in row['TypDuch']:
+                pension_type = 'OZP12'
+            else:
+                pension_type = ''
+
+            new_or_dead_p[rodcis]['TypDuch'] = pension_type
+    return new_or_dead_p
+
+
 def prepare_input(input_file, c_name):
 
     up_table = {}
@@ -44,7 +71,7 @@ def prepare_input(input_file, c_name):
                     fare += int(fare_cost)
 
             exp = 0
-            total_exp = 0
+            # total_exp = 0
             
             if cat == 'INV':
                 for cost in [row['HrubaMzda'], row['Zamest'], row['iNemoc']]:
@@ -237,20 +264,6 @@ def delete_tab(last_data, companies, tabs):
 def open_output(c_name, last_data):
     output_folder = last_data[c_name]['output']
     subprocess.Popen(f'explorer {output_folder}')
-
-
-# def new_company(companies, last_data):
-#     new_name = new_company_name_entry.get()
-#     companies.append(new_name)
-#     if new_name not in last_data:
-#         last_data[new_name] = {'input_data': '', 'src_file_up': '', 'src_file_loc': '', 'output': ''}
-#         make_frame(new_name)
-#         with open(f'structure.json', 'w') as outfile:
-#             outfile.write(json.dumps(last_data, indent=4))
-#             # json.dump(last_data, outfile)
-#
-#     else:
-#         print(f'{new_name} already exists')
 
 
 def item_selected(window, event, my_tree):

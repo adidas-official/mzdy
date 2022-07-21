@@ -17,11 +17,12 @@
 # --------------------------------------------------------------------------------
 
 import logging
-import csv
 import openpyxl
 import msoffcrypto
 from pathlib import Path
 from openpyxl.utils import column_index_from_string, get_column_letter
+
+import functions
 from months_cz import months_cz
 from io import BytesIO
 import json
@@ -30,7 +31,8 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from datetime import datetime
 from functions import load_ins_codes, add_new, update_ins, delete_record, item_selected, activate_tab, set_dir, \
-    show_banner, set_datas, rename_tab, open_output, delete_tab, main_window, prepare_input
+    show_banner, set_datas, rename_tab, open_output, delete_tab, main_window, prepare_input, check_new_ppl
+from os import remove
 
 logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w',
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -46,7 +48,7 @@ def new_company(place):
     new_name = new_company_name_entry.get()
     companies.append(new_name)
     if new_name not in last_data:
-        last_data[new_name] = {'input_data': '', 'src_file_up': '', 'src_file_loc': '', 'output': ''}
+        last_data[new_name] = {'input_data': '', 'newguys': '', 'src_file_up': '', 'src_file_loc': '', 'output': ''}
         make_frame(new_name, place)
         with open(f'structure.json', 'w') as outfile:
             outfile.write(json.dumps(last_data, indent=4))
@@ -66,15 +68,16 @@ def amn(month_name, text_field):
     text_field.delete('1.0', tk.END)
     month = months_cz.index(month_name) + 1
 
+    if Path('new_ppl.txt').exists():
+        remove('new_ppl.txt')
+
     for c_name, input_output in data.items():
+
         if c_name not in companies:
             continue
 
-        try:
-            with open(f'insurance_codes_{c_name}.json', 'r') as ins_file:
-                ins_codes = json.load(ins_file)
-        except Exception as e:
-            print(e)
+        new_ppl_file = open('new_ppl.txt', 'a', encoding='cp1250')
+        new_ppl_file.write(c_name + '\n')
 
         text_field.insert(tk.END, f'|- Vyplnuji {c_name}\n')
         text_field.insert(tk.END, '=' * 44 + '\n')
@@ -95,6 +98,9 @@ def amn(month_name, text_field):
             ws.cell(row=6, column=4).value = 4
 
         employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)
+        new_or_dead_p = functions.check_new_ppl(input_output['newguys'])
+
+        # print(new_or_dead_p)  # {410195808: {'VstupDoZam': '05.01.22', 'UkonceniZam': '', 'TypDuch': '', 'DuchOd': ''}, 7358151955...}
 
         # open mzdy UP table, go through each name in data and check if it is in table
         sheets = ['2) jmenný seznam', '3) nákl. prov. z. a prac. a.']
@@ -131,10 +137,15 @@ def amn(month_name, text_field):
             # print(emp_id, type(emp_id))
             progress['value'] += 100 / (len(employees_up))
             found = False
-            for sheet_name, sheet_data in ids_in_xlsx.items():
+            for sheet_data in ids_in_xlsx.values():
                 if str(emp_id) in sheet_data:
                     found = True
-            if not found:
+            if not found:  # in mzdy.csv NOT in xlsx, emp_id is from csv file
+                # print(emp_id, type(emp_id), emp_data)  # 0402186950 {'first name': 'Michal', 'last name': 'Kratochvíl', 'ins code': '111', 'cat': 'U', 'payment expenses': 4800}
+
+                # if emp_id in new_or_dead_p:
+                #     print(new_or_dead_p[emp_id])
+
                 logging.info(f"Novy zamestnanec {emp_data['first name']} {emp_data['last name']}")
                 text_field.insert(tk.END, f"|- Novy zam. {emp_data['first name']} {emp_data['last name']} ")
                 text_field.see(tk.END)
@@ -148,6 +159,13 @@ def amn(month_name, text_field):
                     ws.cell(row=last_rows[0] + 1, column=4).value = emp_id
                     ws.cell(row=last_rows[0] + 1, column=7).value = emp_data['ins code']
                     ws.cell(row=last_rows[0] + 1, column=col_letter_pay[ws.title]).value = emp_data['payment expenses']
+                    ws.cell(row=last_rows[0] + 1, column=col_letter_pay[ws.title] - 1).value = 'TZP'
+
+                    if emp_id in new_or_dead_p:
+                        ws.cell(row=last_rows[0] + 1, column=5).value = new_or_dead_p[emp_id]['VstupDoZam']
+                        ws.cell(row=last_rows[0] + 1, column=6).value = new_or_dead_p[emp_id]['UkonceniZam']
+                        ws.cell(row=last_rows[0] + 1, column=8).value = new_or_dead_p[emp_id]['DuchOd']
+
                     last_rows[0] += 1
                 elif emp_data['cat'] == 'U':
                     text_field.insert(tk.END, ":Ucen\n")
@@ -166,6 +184,8 @@ def amn(month_name, text_field):
                     ws.cell(row=last_rows[1] + 1, column=6).value = 'PA'
                     ws.cell(row=last_rows[1] + 1, column=7).value = '100%'
                     last_rows[1] += 1
+
+                new_ppl_file.write(emp_data['last name'] + ' ' + emp_data['first name'] + ' ' + str(emp_data['payment expenses']) + '\n')
 
         text_field.insert(tk.END, "=" * 44 + '\n')
         logging.info("-" * 44)
@@ -253,7 +273,7 @@ def amn(month_name, text_field):
                         office_file.decrypt(decrypted_wb)
 
                     wb = openpyxl.load_workbook(filename=decrypted_wb)
-                except UnboundLocalError or msoffcrypto.exceptions.FileFormatError:
+                except (UnboundLocalError, msoffcrypto.exceptions.FileFormatError):
                     wb = openpyxl.load_workbook(input_output['src_file_loc'])
 
                 text_field.insert(tk.END, 'Vyplnuji data do interni tabulky\n')
@@ -299,6 +319,8 @@ def amn(month_name, text_field):
 
                 save_loc = Path(input_output['output']) / f'temp-{c_name}-loc.xlsx'
                 wb.save(save_loc)
+        new_ppl_file.write('\n')
+        new_ppl_file.close()
 
     text_field.insert(tk.END, 'DONE')
     text_field.see('end')
@@ -379,6 +401,7 @@ def make_frame(company_name, place):
             'src_file_loc'
         )
     )
+
     if file_paths:
         inter_btn_in['text'] = Path(file_paths['src_file_loc']).name
 
@@ -464,7 +487,28 @@ def make_frame(company_name, place):
     if file_paths:
         data_btn['text'] = Path(file_paths['input_data']).name
 
-    data_btn.grid(row=0, column=3, columnspan=3)
+    data_btn.grid(row=0, column=3)
+
+    newguys_btn = ttk.Button(
+        company_frame,
+        text='Vyberte data',
+        width=20,
+        state='disabled',
+        command=lambda: set_datas(
+            root,
+            company_name,
+            last_data,
+            newguys_btn,
+            tabs.select(),
+            [('CSV', '*.csv')],
+            'newguys'
+        )
+    )
+
+    if file_paths:
+        newguys_btn['text'] = Path(file_paths['newguys']).name
+
+    newguys_btn.grid(row=0, column=4)
 
     ins_groups_label = ttk.Label(company_frame, text='POJISTOVNY')
     ins_groups_label.grid(row=1, column=2)
@@ -525,20 +569,6 @@ def make_frame(company_name, place):
     scrollbar.grid(row=3, column=5, sticky='NS', rowspan=3)
 
     tabs.insert(place, company_frame, text=company_name)
-
-
-# def main_window(widget, width=0, height=0):
-#     screen_w, screen_h = widget.winfo_screenwidth(), widget.winfo_screenheight()
-#
-#     left = int(screen_w / 2) - int(width / 2)
-#     top = int(screen_h / 2) - int(height / 2)
-#
-#     if width and height:
-#         widget.geometry(f'{width}x{height}+{left}+{top}')
-#     else:
-#         widget.geometry('+%d+%d' % (500, 100))
-#
-#     widget.resizable(0, 0)
 
 
 root = tk.Tk()
