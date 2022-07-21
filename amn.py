@@ -11,9 +11,7 @@
 
 # TOOD:
 # - make local copy of structure.json and use that instead of rewriting global
-# - use csv headers as dictionary keys for better code readability
-# - add start/end employment, type and start of pension to new employees
-# - open src folder and output folder for manual copying of checked files
+# - open src folder and output folder for manual copying of checked file
 # --------------------------------------------------------------------------------
 
 import logging
@@ -22,7 +20,6 @@ import msoffcrypto
 from pathlib import Path
 from openpyxl.utils import column_index_from_string, get_column_letter
 
-import functions
 from months_cz import months_cz
 from io import BytesIO
 import json
@@ -40,8 +37,8 @@ logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w',
 
 current_month = months_cz[datetime.now().month - 1]
 
-with open('structure.json', 'r', encoding='cp1250') as jdata:
-    last_data = json.load(jdata)
+with open('structure.json', 'r', encoding='cp1250') as structure_data:
+    last_data = json.load(structure_data)
 
 
 def new_company(place):
@@ -98,7 +95,7 @@ def amn(month_name, text_field):
             ws.cell(row=6, column=4).value = 4
 
         employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)
-        new_or_dead_p = functions.check_new_ppl(input_output['newguys'])
+        new_or_dead_p = check_new_ppl(input_output['newguys'])
 
         # print(new_or_dead_p)  # {410195808: {'VstupDoZam': '05.01.22', 'UkonceniZam': '', 'TypDuch': '', 'DuchOd': ''}, 7358151955...}
 
@@ -121,7 +118,8 @@ def amn(month_name, text_field):
             root.update_idletasks()
             ws = wb[sheet]
             last_row = 13
-            ids_in_xlsx.setdefault(sheet, {})
+            # ids_in_xlsx.setdefault(sheet, {})
+            ids_in_xlsx[sheet] = {}
 
             for i in range(100):
                 row = i + 13
@@ -142,9 +140,6 @@ def amn(month_name, text_field):
                     found = True
             if not found:  # in mzdy.csv NOT in xlsx, emp_id is from csv file
                 # print(emp_id, type(emp_id), emp_data)  # 0402186950 {'first name': 'Michal', 'last name': 'Kratochvíl', 'ins code': '111', 'cat': 'U', 'payment expenses': 4800}
-
-                # if emp_id in new_or_dead_p:
-                #     print(new_or_dead_p[emp_id])
 
                 logging.info(f"Novy zamestnanec {emp_data['first name']} {emp_data['last name']}")
                 text_field.insert(tk.END, f"|- Novy zam. {emp_data['first name']} {emp_data['last name']} ")

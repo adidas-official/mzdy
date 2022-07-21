@@ -1,7 +1,7 @@
 {
     "Fiala": {
         "input_data": "H:\\My Drive\\Fiala\\mzdy-program\\MZDY.CSV",
-        "newguys": "C:\\Users\\bluem\\PycharmProjects\\Mzdove_naklady_FIALA\\PRACOV.CSV",
+        "newguys": "H:\\My Drive\\Fiala\\mzdy-program\\PRACOV.CSV",
         "src_file_up": "H:\\My Drive\\Fiala\\mzdy-program\\jmenny_seznam_2022_03_24 Fiala.xlsx",
         "src_file_loc": "H:\\My Drive\\Fiala\\mzdy-program\\Mzdov\u00e9 n\u00e1klady 2022.xlsx",
         "output": "C:\\Users\\bluem\\Desktop"
