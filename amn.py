@@ -30,6 +30,20 @@ from datetime import datetime
 from functions import load_ins_codes, add_new, update_ins, delete_record, item_selected, activate_tab, set_dir, \
     show_banner, set_datas, rename_tab, open_output, delete_tab, main_window, prepare_input, check_new_ppl
 from os import remove
+from shutil import copy
+
+HOME = Path.home() / 'amn'
+STRUCTURE = 'structure.json'
+
+if not HOME.exists():
+    HOME.mkdir()
+
+if not Path(HOME / 'structure.json').exists():
+    copy(Path.cwd() / 'structure.json', HOME / 'structure.json')
+
+STRUCTURE = HOME / 'structure.json'
+NEW_PPL = HOME / 'new_ppl.txt'
+
 
 logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w',
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -37,7 +51,7 @@ logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w',
 
 current_month = months_cz[datetime.now().month - 1]
 
-with open('structure.json', 'r', encoding='cp1250') as structure_data:
+with open(STRUCTURE, 'r', encoding='cp1250') as structure_data:
     last_data = json.load(structure_data)
 
 
@@ -47,7 +61,8 @@ def new_company(place):
     if new_name not in last_data:
         last_data[new_name] = {'input_data': '', 'newguys': '', 'src_file_up': '', 'src_file_loc': '', 'output': ''}
         make_frame(new_name, place)
-        with open(f'structure.json', 'w') as outfile:
+
+        with open(STRUCTURE, 'w') as outfile:
             outfile.write(json.dumps(last_data, indent=4))
 
     else:
@@ -59,21 +74,21 @@ companies = []
 
 
 def amn(month_name, text_field):
-    with open('structure.json', 'r', encoding='cp1250') as jdata:
+    with open(STRUCTURE, 'r', encoding='cp1250') as jdata:
         data = json.load(jdata)
 
     text_field.delete('1.0', tk.END)
     month = months_cz.index(month_name) + 1
 
-    if Path('new_ppl.txt').exists():
-        remove('new_ppl.txt')
+    if Path(NEW_PPL).exists():
+        remove(NEW_PPL)
 
     for c_name, input_output in data.items():
 
         if c_name not in companies:
             continue
 
-        new_ppl_file = open('new_ppl.txt', 'a', encoding='cp1250')
+        new_ppl_file = open(NEW_PPL, 'a', encoding='cp1250')
         new_ppl_file.write(c_name + '\n')
 
         text_field.insert(tk.END, f'|- Vyplnuji {c_name}\n')

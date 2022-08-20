@@ -8,6 +8,11 @@ from tkinter.filedialog import askopenfilename, askdirectory
 from tkinter.messagebox import askyesno
 from os import remove
 
+HOME = Path.home() / 'amn'
+STRUCTURE = HOME / 'structure.json'
+if not Path(STRUCTURE).exists():
+    STRUCTURE = 'structure.json'
+
 
 def check_new_ppl(input_file):
     with open(input_file, 'r', encoding='cp1250') as pracov:
@@ -229,7 +234,7 @@ def rename_tab(window, companies, last_data, tab, tabs):
         new_data = {new_name if k == c_name else k:v for k, v in last_data.items()}
         btn['text'] = new_name
 
-        with open(f'structure.json', 'w') as outfile:
+        with open(STRUCTURE, 'w') as outfile:
             outfile.write(json.dumps(new_data, indent=4))
 
         if Path(f'insurance_codes_{c_name}.json').exists():
@@ -246,7 +251,7 @@ def delete_tab(last_data, companies, tabs):
 
         if c_name in last_data:
             del last_data[c_name]
-            with open(f'structure.json', 'w') as outfile:
+            with open(STRUCTURE, 'w') as outfile:
                 outfile.write(json.dumps(last_data, indent=4))
 
         if c_name in companies:
@@ -329,7 +334,7 @@ def set_dir(window, c_name, btn, comp, last_data):
     if dir_name:
         window.nametowidget(comp + '.' + btn.winfo_name())["text"] = str(Path(dir_name).name)
         last_data[c_name]['output'] = str(Path(dir_name))
-        with open('structure.json', 'w', encoding='cp1250') as input_file:
+        with open(STRUCTURE, 'w', encoding='cp1250') as input_file:
             input_file.write(json.dumps(last_data, indent=4))
 
 
@@ -353,5 +358,5 @@ def set_datas(window, c_name, last_data, btn, comp, filetypes, key_name):
         window.nametowidget(comp + '.' + btn.winfo_name())['text'] = file
 
         last_data[c_name][key_name] = str(Path(filename))
-        with open('structure.json', 'w', encoding='cp1250') as input_file:
+        with open(STRUCTURE, 'w', encoding='cp1250') as input_file:
             input_file.write(json.dumps(last_data, indent=4))

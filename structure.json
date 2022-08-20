@@ -1,16 +1,16 @@
 {
     "Fiala": {
-        "input_data": "H:\\My Drive\\Fiala\\mzdy-program\\MZDY.CSV",
-        "newguys": "H:\\My Drive\\Fiala\\mzdy-program\\PRACOV.CSV",
-        "src_file_up": "H:\\My Drive\\Fiala\\mzdy-program\\jmenny_seznam_2022_03_24 Fiala.xlsx",
-        "src_file_loc": "H:\\My Drive\\Fiala\\mzdy-program\\Mzdov\u00e9 n\u00e1klady 2022.xlsx",
-        "output": "C:\\Users\\bluem\\Desktop"
+        "input_data": "",
+        "newguys": "",
+        "src_file_up": "",
+        "src_file_loc": "",
+        "output": ""
     },
     "Bereko": {
-        "input_data": "H:\\My Drive\\Fiala\\mzdy-program\\ARCHIVM.CSV",
-        "newguys": "H:\\My Drive\\Fiala\\mzdy-program\\PRACOV.CSV",
-        "src_file_up": "H:\\My Drive\\Fiala\\mzdy-program\\jmenny_seznam_2022_03_24 Bereko.xlsx",
-        "src_file_loc": "H:\\My Drive\\Fiala\\mzdy-program\\mzdov\u00e9 n\u00e1klady bereko 2022.xlsx",
-        "output": "C:\\Users\\bluem\\Desktop"
+        "input_data": "",
+        "newguys": "",
+        "src_file_up": "",
+        "src_file_loc": "",
+        "output": ""
     }
 }
