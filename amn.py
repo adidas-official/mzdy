@@ -316,7 +316,7 @@ def amn(month_name, text_field):
                         cell_val = cell.value
                         if cell_val:
 
-                            if cell_val == 'Zákonné pojištění' or cell_val == 'Mzdové náklady':
+                            if cell_val == 'Zákonné pojištění' or cell_val == 'Celkem':
                                 break
 
                             if cell_val in employees_inter:
