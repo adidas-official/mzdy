@@ -72,11 +72,11 @@ def prepare_input(input_file, c_name):
             fare = 0
 
             for fare_cost in [row['Davky1'], row['Davky2']]:
-                if fare_cost and cat == 'INV':
+                if fare_cost:
                     fare += int(fare_cost)
 
             exp = 0
-            # total_exp = 0
+            total_exp = 0
             
             if cat == 'INV':
                 for cost in [row['HrubaMzda'], row['Zamest'], row['iNemoc']]:
@@ -97,7 +97,7 @@ def prepare_input(input_file, c_name):
             else:
                 ins_group_code = 999
 
-            up_table.setdefault(rodcis, {'first name': fname, 'last name': lname, 'ins code': ins_group_code, 'cat': cat, 'payment expenses': exp - fare})
+            up_table.setdefault(rodcis, {'first name': fname, 'last name': lname, 'ins code': ins_group_code, 'cat': cat, 'payment expenses': total_exp - fare})
             inter_table.setdefault(lname + ' ' + fname, (total_exp, fare))
 
     return up_table, inter_table
