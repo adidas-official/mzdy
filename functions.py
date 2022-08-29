@@ -65,7 +65,8 @@ def prepare_input(input_file, c_name):
             else:
                 fname = full_name[1]
 
-            lname = full_name[0]
+            fname = fname.strip()
+            lname = full_name[0].strip()
 
             ins = row['CisPoj'][1:-1]
             cat = row['Kat'][1:-1]

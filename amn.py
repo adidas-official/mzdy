@@ -109,7 +109,7 @@ def amn(month_name, text_field):
         else:
             ws.cell(row=6, column=4).value = 4
 
-        employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)
+        employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)    
         new_or_dead_p = check_new_ppl(input_output['newguys'])
 
         # print(new_or_dead_p)  # {410195808: {'VstupDoZam': '05.01.22', 'UkonceniZam': '', 'TypDuch': '', 'DuchOd': ''}, 7358151955...}
@@ -318,8 +318,11 @@ def amn(month_name, text_field):
 
                             if cell_val == 'Zákonné pojištění' or cell_val == 'Celkem':
                                 break
-
+                                
+                            cell_val = cell_val[:20]
+                            
                             if cell_val in employees_inter:
+                                
                                 text_field.insert(tk.END, f"|- Vyplnuji {cell_val}: {employees_inter[cell_val][0]}\n")
                                 logging.info(f"|- Vyplnuji {cell_val}: {employees_inter[cell_val][0]}")
                                 ws.cell(row=i, column=month_col).value = employees_inter[cell_val][0]
