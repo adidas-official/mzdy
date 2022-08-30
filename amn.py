@@ -10,7 +10,7 @@
 # Description: Automatizace vyplnovani mezd do xlsx tabulek pro urad prace a internich tabulek.
 
 # TOOD:
-# - make local copy of structure.json and use that instead of rewriting global
+# - add ozp status from `PRACOV.CSV` - DONE
 # - open src folder and output folder for manual copying of checked file
 # --------------------------------------------------------------------------------
 
@@ -169,12 +169,13 @@ def amn(month_name, text_field):
                     ws.cell(row=last_rows[0] + 1, column=4).value = emp_id
                     ws.cell(row=last_rows[0] + 1, column=7).value = emp_data['ins code']
                     ws.cell(row=last_rows[0] + 1, column=col_letter_pay[ws.title]).value = emp_data['payment expenses']
-                    ws.cell(row=last_rows[0] + 1, column=col_letter_pay[ws.title] - 1).value = 'TZP'
 
                     if emp_id in new_or_dead_p:
                         ws.cell(row=last_rows[0] + 1, column=5).value = new_or_dead_p[emp_id]['VstupDoZam']
                         ws.cell(row=last_rows[0] + 1, column=6).value = new_or_dead_p[emp_id]['UkonceniZam']
                         ws.cell(row=last_rows[0] + 1, column=8).value = new_or_dead_p[emp_id]['DuchOd']
+                        ws.cell(row=last_rows[0] + 1, column=col_letter_pay[ws.title] - 1).value = new_or_dead_p[emp_id]['TypDuch']
+                        ws.cell(row=last_rows[0] + 1, column=col_letter_pay[ws.title]).value = emp_data['payment expenses']
 
                     last_rows[0] += 1
                 elif emp_data['cat'] == 'U':
@@ -193,6 +194,7 @@ def amn(month_name, text_field):
                     ws.cell(row=last_rows[1] + 1, column=5).value = '-\'\'-'
                     ws.cell(row=last_rows[1] + 1, column=6).value = 'PA'
                     ws.cell(row=last_rows[1] + 1, column=7).value = '100%'
+
                     last_rows[1] += 1
 
                 new_ppl_file.write(emp_data['last name'] + ' ' + emp_data['first name'] + ' ' + str(emp_data['payment expenses']) + '\n')
@@ -228,6 +230,8 @@ def amn(month_name, text_field):
                                 ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 12).value = ''
                         elif col_letter_pay[sheet_name] == 11:  # first month
                             # delete salary in next 2 months
+                            ozp_status = ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 9).value
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ozp_status
                             ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 4).value = ''
                             ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 5).value = ''
                             ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 9).value = ''
@@ -265,6 +269,13 @@ def amn(month_name, text_field):
                     if sheet_name == sheets[0]:
                         ws.cell(row=row_num, column=col_letter_pay[sheet_name] - 1).value = ''
                         ws.cell(row=row_num, column=col_letter_pay[sheet_name]).value = ''
+                        if col_letter_pay[sheet_name] == 21:
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 12).value = ''
+                        elif col_letter_pay[sheet_name] == 11:
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 14).value = ''
+                        else:
+                            ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 13).value = ''
+                            
                 root.update_idletasks()
 
         save_loc = Path(input_output['output']) / f'temp-{c_name}-up.xlsx'
@@ -316,7 +327,7 @@ def amn(month_name, text_field):
                         cell_val = cell.value
                         if cell_val:
 
-                            if cell_val == 'Zákonné pojištění' or cell_val == 'Celkem':
+                            if cell_val == '[ENDBLOCK]':
                                 break
                                 
                             cell_val = cell_val[:20]

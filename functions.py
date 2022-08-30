@@ -97,7 +97,7 @@ def prepare_input(input_file, c_name):
                 ins_group_code = ins_codes[ins][0]
             else:
                 ins_group_code = 999
-
+                
             up_table.setdefault(rodcis, {'first name': fname, 'last name': lname, 'ins code': ins_group_code, 'cat': cat, 'payment expenses': total_exp - fare})
             full_name = lname + ' ' + fname
             full_name = full_name[:20]
