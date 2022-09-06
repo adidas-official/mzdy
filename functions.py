@@ -98,7 +98,7 @@ def prepare_input(input_file, c_name):
             else:
                 ins_group_code = 999
                 
-            up_table.setdefault(rodcis, {'first name': fname, 'last name': lname, 'ins code': ins_group_code, 'cat': cat, 'payment expenses': total_exp - fare})
+            up_table.setdefault(rodcis, {'first name': fname, 'last name': lname, 'ins code': ins_group_code, 'cat': cat, 'payment expenses': total_exp})
             full_name = lname + ' ' + fname
             full_name = full_name[:20]
             inter_table.setdefault(full_name, (total_exp, fare))

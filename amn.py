@@ -49,7 +49,7 @@ logging.basicConfig(level=logging.INFO, filename='log.log', filemode='w',
                     format='%(levelname)s - %(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-current_month = months_cz[datetime.now().month - 1]
+current_month = months_cz[(datetime.now().month - 2) % 12]
 
 with open(STRUCTURE, 'r', encoding='cp1250') as structure_data:
     last_data = json.load(structure_data)
