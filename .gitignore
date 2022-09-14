@@ -1,10 +1,8 @@
-/venv/
-/INPUT/I.DBF
-/.idea/*
-/OUTPUT/*
-*.ai
+venv/
+.idea/
 *.log
-/new_ppl.txt
-/PRACOV.CSV
-/structure.json
+new_ppl.txt
+PRACOV.CSV
+structure.json
 __pycache__/*
+

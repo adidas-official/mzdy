@@ -328,6 +328,9 @@ def amn(month_name, text_field):
                         cell = ws.cell(row=i, column=1)
                         cell_val = cell.value
                         if cell_val:
+                            #for n in new_or_dead_p.items():
+                            #    print(n)   # ('7308021908', {'VstupDoZam': '21.06.2022', 'UkonceniZam': '', 'DuchOd': '', 'TypDuch': '', 'Jmeno': "'Paulus Bohuslav'", 'Kat': "'DPP'", 'Kod': "'Admin'"})
+
 
                             if cell_val == '[ENDBLOCK]':
                                 break
@@ -345,10 +348,7 @@ def amn(month_name, text_field):
                                     
                         root.update_idletasks()
                     # ADDING NEW PEOPLE   
-                    #if new_or_dead_loc and sheet not in ['Celkový součet', 'kontrola']:
-                    #   for n in new_or_dead_loc:
-                    #        ws.insert_rows(3)
-                    #        ws.cell(row=3, column=1).value = n
+                    # pridat na konec, nechat v xlsx vzdy misto pro dalsi lidi. Takze zpet pridat plno prazdnych radku. super.
                         
                     logging.info("")
 
