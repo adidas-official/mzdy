@@ -110,9 +110,10 @@ def amn(month_name, text_field):
             ws.cell(row=6, column=4).value = 4
 
         employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)    
-        new_or_dead_p = check_new_ppl(input_output['newguys'])
-
-        # print(new_or_dead_p)  # {410195808: {'VstupDoZam': '05.01.22', 'UkonceniZam': '', 'TypDuch': '', 'DuchOd': ''}, 7358151955...}
+        new_or_dead_p, new_or_dead_loc = check_new_ppl(input_output['newguys'])
+           
+        #for n in new_or_dead_p.items():
+        #    print(n)           # ('7308021908', {'VstupDoZam': '21.06.2022', 'UkonceniZam': '', 'DuchOd': '', 'TypDuch': '', 'Jmeno': "'Paulus Bohuslav'", 'Kat': "'DPP'", 'Kod': "'Admin'"})
 
         # open mzdy UP table, go through each name in data and check if it is in table
         sheets = ['2) jmenný seznam', '3) nákl. prov. z. a prac. a.']
@@ -300,8 +301,10 @@ def amn(month_name, text_field):
                 text_field.insert(tk.END, 'Vyplnuji data do interni tabulky\n')
                 logging.info('Vyplnuji data do interni tabulky')
                 fare_offset = 4
+                
 
                 for sheet in wb.sheetnames[:8]:
+                    last_row = 0
                     progress['value'] = 0
                     root.update_idletasks()
                     if sheet == 'Úřad práce':
@@ -314,7 +317,6 @@ def amn(month_name, text_field):
                         cell = ws.cell(row=1, column=col)
 
                         if not type(cell).__name__ == 'MergedCell' and cell.value:
-                            # if not type(cell).__name__ == 'MergedCell' and cell.value not in [None, "celkem za rok", "=A1"]:
                             if cell.value == month_name:
                                 month_col = cell.column
                                 break
@@ -338,7 +340,16 @@ def amn(month_name, text_field):
                                 logging.info(f"|- Vyplnuji {cell_val}: {employees_inter[cell_val][0]}")
                                 ws.cell(row=i, column=month_col).value = employees_inter[cell_val][0]
                                 ws.cell(row=i, column=month_col + fare_offset).value = employees_inter[cell_val][1]
+                                
+                       
+                                    
                         root.update_idletasks()
+                    # ADDING NEW PEOPLE   
+                    #if new_or_dead_loc and sheet not in ['Celkový součet', 'kontrola']:
+                    #   for n in new_or_dead_loc:
+                    #        ws.insert_rows(3)
+                    #        ws.cell(row=3, column=1).value = n
+                        
                     logging.info("")
 
                 save_loc = Path(input_output['output']) / f'temp-{c_name}-loc.xlsx'

@@ -17,16 +17,22 @@ if not Path(STRUCTURE).exists():
 def check_new_ppl(input_file):
     with open(input_file, 'r', encoding='cp1250') as pracov:
         new_or_dead_p = {}
+        new_or_dead_loc = {}
         dreader = csv.DictReader(pracov)
         to_add_mil = ['VstupDoZam', 'UkonceniZam', 'DuchOd']
 
         for row in dreader:
+            name = row['Jmeno30'][1:-1]
             rodcis = row['RodCislo'].replace('/', '').replace('"', '').replace('\'', '').replace('\n', '')
             new_or_dead_p.setdefault(rodcis, {})
+            new_or_dead_loc.setdefault(name, {})
 
             for d in to_add_mil:
                 if row[d]:
-                    new_or_dead_p[rodcis][d] = row[d][1:-3] + '20' + row[d][-3:-1]
+                    if int(row[d][-3:-1]) <= 22:
+                        new_or_dead_p[rodcis][d] = row[d][1:-3] + '20' + row[d][-3:-1]
+                    else:
+                        new_or_dead_p[rodcis][d] = row[d][1:-3] + '19' + row[d][-3:-1]
                 else:
                     new_or_dead_p[rodcis][d] = ''
 
@@ -38,7 +44,11 @@ def check_new_ppl(input_file):
                 pension_type = ''
 
             new_or_dead_p[rodcis]['TypDuch'] = pension_type
-    return new_or_dead_p
+                   
+            new_or_dead_loc[name]['Kod'] = row['Kod'][1:-1]
+
+
+    return new_or_dead_p, new_or_dead_loc
 
 
 def prepare_input(input_file, c_name):
