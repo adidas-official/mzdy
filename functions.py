@@ -22,7 +22,7 @@ def check_new_ppl(input_file):
         to_add_mil = ['VstupDoZam', 'UkonceniZam', 'DuchOd']
 
         for row in dreader:
-            name = row['Jmeno30'][1:-1]
+            name = row['Jmeno'][1:-1]
             rodcis = row['RodCislo'].replace('/', '').replace('"', '').replace('\'', '').replace('\n', '')
             new_or_dead_p.setdefault(rodcis, {})
             new_or_dead_loc.setdefault(name, {})
@@ -44,7 +44,7 @@ def check_new_ppl(input_file):
                 pension_type = ''
 
             new_or_dead_p[rodcis]['TypDuch'] = pension_type
-                   
+
             new_or_dead_loc[name]['Kod'] = row['Kod'][1:-1]
 
 
@@ -88,7 +88,7 @@ def prepare_input(input_file, c_name):
 
             exp = 0
             total_exp = 0
-            
+
             if cat == 'INV':
                 for cost in [row['HrubaMzda'], row['Zamest'], row['iNemoc']]:
                     if cost:
@@ -107,7 +107,7 @@ def prepare_input(input_file, c_name):
                 ins_group_code = ins_codes[ins][0]
             else:
                 ins_group_code = 999
-                
+
             up_table.setdefault(rodcis, {'first name': fname, 'last name': lname, 'ins code': ins_group_code, 'cat': cat, 'payment expenses': total_exp})
             full_name = lname + ' ' + fname
             full_name = full_name[:20]
@@ -132,10 +132,10 @@ def main_window(widget, width=0, height=0):
 
 def show_banner(txt):
     txt.delete('1.0', tk.END)
-    banner = '''    _     __  __   _  _ 
-   /_\   |  \/  | | \| |			   |       Automatizace	
-  / _ \  | |\/| | | .` |	     |       Mzdových		   
- /_/ \_\ |_|  |_| |_|\_|			   |       Nákladů			   
+    banner = '''    _     __  __   _  _
+   /_\   |  \/  | | \| |			   |       Automatizace
+  / _ \  | |\/| | | .` |	     |       Mzdových
+ /_/ \_\ |_|  |_| |_|\_|			   |       Nákladů
 ========================================================= '''
     txt.insert('1.0', banner)
     get_help(txt)
@@ -233,9 +233,9 @@ def rename_tab(window, companies, last_data, tab, tabs):
     c_name = tabs.tab(tab)['text']
     btn = window.nametowidget(tab + '.!checkbutton')
     new_name = simpledialog.askstring("Prejmenovat", "Novy nazev", parent=window)
-    
+
     confirm = askyesno(title="POZOR", message="Opravdu chcete prejmenovat firmu?")
-    
+
     if confirm:
 
         if c_name in companies:
@@ -257,7 +257,7 @@ def rename_tab(window, companies, last_data, tab, tabs):
 def delete_tab(last_data, companies, tabs):
 
     confirm = askyesno(title="POZOR", message="Chcete smazat firmu?")
-    
+
     if confirm:
         c_name = tabs.tab(tabs.select())['text']
         ins_file = Path(f'insurance_codes_{c_name}.json')
@@ -341,7 +341,7 @@ def set_dir(window, c_name, btn, comp, last_data):
         initdir = last_dir
     else:
         initdir = Path.home()
-    
+
     dir_name = askdirectory(title='Choose output folder', initialdir=initdir)
 
     if dir_name:
@@ -358,7 +358,7 @@ def set_datas(window, c_name, last_data, btn, comp, filetypes, key_name):
         initdir = last_dir
     else:
         initdir = Path.home()
-        
+
 
     filename = askopenfilename(
         title='Open a file',
