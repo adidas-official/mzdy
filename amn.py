@@ -109,9 +109,9 @@ def amn(month_name, text_field):
         else:
             ws.cell(row=6, column=4).value = 4
 
-        employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)    
+        employees_up, employees_inter = prepare_input(input_output['input_data'], c_name)
         new_or_dead_p, new_or_dead_loc = check_new_ppl(input_output['newguys'])
-           
+
         #for n in new_or_dead_p.items():
         #    print(n)           # ('7308021908', {'VstupDoZam': '21.06.2022', 'UkonceniZam': '', 'DuchOd': '', 'TypDuch': '', 'Jmeno': "'Paulus Bohuslav'", 'Kat': "'DPP'", 'Kod': "'Admin'"})
 
@@ -276,7 +276,7 @@ def amn(month_name, text_field):
                             ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 14).value = ''
                         else:
                             ws.cell(row=row_num, column=col_letter_pay[sheet_name] + 13).value = ''
-                            
+
                 root.update_idletasks()
 
         save_loc = Path(input_output['output']) / f'temp-{c_name}-up.xlsx'
@@ -301,7 +301,7 @@ def amn(month_name, text_field):
                 text_field.insert(tk.END, 'Vyplnuji data do interni tabulky\n')
                 logging.info('Vyplnuji data do interni tabulky')
                 fare_offset = 4
-                
+
 
                 for sheet in wb.sheetnames[:8]:
                     last_row = 0
@@ -328,28 +328,28 @@ def amn(month_name, text_field):
                         cell = ws.cell(row=i, column=1)
                         cell_val = cell.value
                         if cell_val:
+                            #for n in new_or_dead_p.items():
+                            #    print(n)   # ('7308021908', {'VstupDoZam': '21.06.2022', 'UkonceniZam': '', 'DuchOd': '', 'TypDuch': '', 'Jmeno': "'Paulus Bohuslav'", 'Kat': "'DPP'", 'Kod': "'Admin'"})
+
 
                             if cell_val == '[ENDBLOCK]':
                                 break
-                                
+
                             cell_val = cell_val[:20]
-                            
+
                             if cell_val in employees_inter:
-                                
+
                                 text_field.insert(tk.END, f"|- Vyplnuji {cell_val}: {employees_inter[cell_val][0]}\n")
                                 logging.info(f"|- Vyplnuji {cell_val}: {employees_inter[cell_val][0]}")
                                 ws.cell(row=i, column=month_col).value = employees_inter[cell_val][0]
                                 ws.cell(row=i, column=month_col + fare_offset).value = employees_inter[cell_val][1]
-                                
-                       
-                                    
+
+
+
                         root.update_idletasks()
-                    # ADDING NEW PEOPLE   
-                    #if new_or_dead_loc and sheet not in ['Celkový součet', 'kontrola']:
-                    #   for n in new_or_dead_loc:
-                    #        ws.insert_rows(3)
-                    #        ws.cell(row=3, column=1).value = n
-                        
+                    # ADDING NEW PEOPLE
+                    # pridat na konec, nechat v xlsx vzdy misto pro dalsi lidi. Takze zpet pridat plno prazdnych radku. super.
+
                     logging.info("")
 
                 save_loc = Path(input_output['output']) / f'temp-{c_name}-loc.xlsx'
