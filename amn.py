@@ -98,7 +98,21 @@ def amn(month_name, text_field):
         wb = openpyxl.load_workbook(input_output['src_file_up'])
         ws = wb["1) Úvodní list"]
         date_formated = datetime.now().strftime("%d.%m.%Y")
+        ws.cell(row=30, column=column_index_from_string('B')).value = 'Dalovicích'
         ws.cell(row=30, column=column_index_from_string('E')).value = date_formated
+
+        # fill in company details on first page, if it is not filled in already
+        companyfullnamecell = ws.cell(row=9, column=column_index_from_string('E'))
+        companyidcell = ws.cell(row=10, column=column_index_from_string('E'))
+        companyownewcell = ws.cell(row=30, column=column_index_from_string('H'))
+
+        if not companyfullnamecell.value:
+            companyfullnamecell.value = input_output['fullcname']
+        if not companyidcell.value:
+            companyidcell.value = input_output['ico']
+        if not companyownercell.value:
+            companyownercell.value = input_output['cowner']
+
 
         if month <= 3:
             ws.cell(row=6, column=4).value = 1
