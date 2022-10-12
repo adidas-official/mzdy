@@ -29,7 +29,7 @@ from tkinter.scrolledtext import ScrolledText
 from datetime import datetime
 from functions import load_ins_codes, add_new, update_ins, delete_record, item_selected, activate_tab, set_dir, \
     show_banner, set_datas, rename_tab, open_output, delete_tab, main_window, prepare_input, check_new_ppl
-from os import remove
+from os import remove, system
 from shutil import copy
 
 HOME = Path.home() / 'amn'
@@ -356,6 +356,7 @@ def amn(month_name, text_field):
                 wb.save(save_loc)
         new_ppl_file.write('\n')
         new_ppl_file.close()
+        system(str(NEW_PPL))
 
     text_field.insert(tk.END, 'DONE')
     text_field.see('end')
