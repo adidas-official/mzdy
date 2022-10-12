@@ -22,7 +22,7 @@ def check_new_ppl(input_file):
         to_add_mil = ['VstupDoZam', 'UkonceniZam', 'DuchOd']
 
         for row in dreader:
-            name = row['Jmeno'][1:-1]
+            name = row['Jmeno30'][1:-1]
             rodcis = row['RodCislo'].replace('/', '').replace('"', '').replace('\'', '').replace('\n', '')
             new_or_dead_p.setdefault(rodcis, {})
             new_or_dead_loc.setdefault(name, {})
