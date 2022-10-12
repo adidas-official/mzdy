@@ -1,5 +1,8 @@
 {
     "Fiala": {
+        "fullcname": "",
+        "cowner": "",
+        "ico": "",
         "input_data": "",
         "newguys": "",
         "src_file_up": "",
@@ -7,6 +10,9 @@
         "output": ""
     },
     "Bereko": {
+        "fullcname": "",
+        "cowner": "",
+        "ico": "",
         "input_data": "",
         "newguys": "",
         "src_file_up": "",
