@@ -313,7 +313,7 @@ def amn(month_name, text_field):
                     logging.info(sheet)
                     ws = wb[sheet]
                     month_col = ''
-                    for col in range(2, column_index_from_string('CH')):
+                    for col in range(2, column_index_from_string('CI')):
                         cell = ws.cell(row=1, column=col)
 
                         if not type(cell).__name__ == 'MergedCell' and cell.value:
@@ -325,7 +325,7 @@ def amn(month_name, text_field):
 
                     for i in range(3, 203):
                         progress['value'] += 0.5
-                        cell = ws.cell(row=i, column=1)
+                        cell = ws.cell(row=i, column=2)
                         cell_val = cell.value
                         if cell_val:
                             #for n in new_or_dead_p.items():
