@@ -36,9 +36,9 @@ def check_new_ppl(input_file):
                 else:
                     new_or_dead_p[rodcis][d] = ''
 
-            if 'invalidní 3.stup' in row['TypDuch']:
+            if '3.stup' in row['TypDuch']:
                 pension_type = 'TZP'
-            elif 'invalidní 1.nebo' in row['TypDuch']:
+            elif '1.nebo' in row['TypDuch']:
                 pension_type = 'OZP12'
             else:
                 pension_type = ''
@@ -46,7 +46,6 @@ def check_new_ppl(input_file):
             new_or_dead_p[rodcis]['TypDuch'] = pension_type
 
             new_or_dead_loc[name]['Kod'] = row['Kod'][1:-1]
-
 
     return new_or_dead_p, new_or_dead_loc
 

@@ -29,7 +29,7 @@ from tkinter.scrolledtext import ScrolledText
 from datetime import datetime
 from functions import load_ins_codes, add_new, update_ins, delete_record, item_selected, activate_tab, set_dir, \
     show_banner, set_datas, rename_tab, open_output, delete_tab, main_window, prepare_input, check_new_ppl
-from os import remove, system
+from os import remove
 from shutil import copy
 
 HOME = Path.home() / 'amn'
@@ -98,21 +98,7 @@ def amn(month_name, text_field):
         wb = openpyxl.load_workbook(input_output['src_file_up'])
         ws = wb["1) Úvodní list"]
         date_formated = datetime.now().strftime("%d.%m.%Y")
-        ws.cell(row=30, column=column_index_from_string('B')).value = 'Dalovicích'
         ws.cell(row=30, column=column_index_from_string('E')).value = date_formated
-
-        # fill in company details on first page, if it is not filled in already
-        # companyfullnamecell = ws.cell(row=9, column=column_index_from_string('E'))
-        # companyidcell = ws.cell(row=10, column=column_index_from_string('E'))
-        # companyownercell = ws.cell(row=30, column=column_index_from_string('H'))
-        #
-        # if not companyfullnamecell.value:
-        #     companyfullnamecell.value = input_output['fullcname']
-        # if not companyidcell.value:
-        #     companyidcell.value = input_output['ico']
-        # if not companyownercell.value:
-        #     companyownercell.value = input_output['cowner']
-
 
         if month <= 3:
             ws.cell(row=6, column=4).value = 1
@@ -327,7 +313,7 @@ def amn(month_name, text_field):
                     logging.info(sheet)
                     ws = wb[sheet]
                     month_col = ''
-                    for col in range(2, column_index_from_string('CI')):
+                    for col in range(2, column_index_from_string('CH')):
                         cell = ws.cell(row=1, column=col)
 
                         if not type(cell).__name__ == 'MergedCell' and cell.value:
@@ -339,7 +325,7 @@ def amn(month_name, text_field):
 
                     for i in range(3, 203):
                         progress['value'] += 0.5
-                        cell = ws.cell(row=i, column=2)
+                        cell = ws.cell(row=i, column=1)
                         cell_val = cell.value
                         if cell_val:
                             #for n in new_or_dead_p.items():
@@ -370,7 +356,6 @@ def amn(month_name, text_field):
                 wb.save(save_loc)
         new_ppl_file.write('\n')
         new_ppl_file.close()
-        system(str(NEW_PPL))
 
     text_field.insert(tk.END, 'DONE')
     text_field.see('end')
