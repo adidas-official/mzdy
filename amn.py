@@ -303,7 +303,7 @@ def amn(month_name, text_field):
                 fare_offset = 4
 
 
-                for sheet in wb.sheetnames[:8]:
+                for sheet in wb.sheetnames[:-2]:
                     last_row = 0
                     progress['value'] = 0
                     root.update_idletasks()
