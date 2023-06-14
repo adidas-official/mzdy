@@ -307,7 +307,7 @@ def amn(month_name, text_field):
                     last_row = 0
                     progress['value'] = 0
                     root.update_idletasks()
-                    if sheet == 'Úřad práce':
+                    if sheet == 'ÚP Sokolov':
                         fare_offset = 2
                     text_field.insert(tk.END, '\n+ ' + sheet + '\n')
                     logging.info(sheet)
