@@ -29,7 +29,7 @@ def check_new_ppl(input_file):
 
             for d in to_add_mil:
                 if row[d]:
-                    if int(row[d][-3:-1]) <= 22:
+                    if int(row[d][-3:-1]) <= 23:
                         new_or_dead_p[rodcis][d] = row[d][1:-3] + '20' + row[d][-3:-1]
                     else:
                         new_or_dead_p[rodcis][d] = row[d][1:-3] + '19' + row[d][-3:-1]
